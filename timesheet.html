@@ -191,12 +191,25 @@
             border: 1px solid #ddd;
         }
 
-        tbody tr:nth-child(even) {
-            background-color: #f9f9f9;
+        /* Category-based row coloring */
+        tbody tr.category-bd {
+            background-color: rgba(255, 152, 0, 0.15); /* Business Development - Orange */
+        }
+
+        tbody tr.category-o {
+            background-color: rgba(156, 39, 176, 0.15); /* Overheads - Purple */
+        }
+
+        tbody tr.category-t {
+            background-color: rgba(76, 175, 80, 0.15); /* Time Off - Green */
+        }
+
+        tbody tr.category-p {
+            background-color: rgba(33, 150, 243, 0.15); /* Productive - Blue */
         }
 
         tbody tr:hover {
-            background-color: #e9ecef;
+            filter: brightness(95%);
         }
 
         input, select {
@@ -205,6 +218,7 @@
             border: 1px solid #ced4da;
             border-radius: 3px;
             font-size: 13px;
+            background-color: #ffffff; /* Solid white background for readability */
         }
 
         input:focus, select:focus {
@@ -2065,6 +2079,10 @@
                     tr.dataset.rowId = row.id;
                     tr.dataset.rowIndex = index;
 
+                    // Add category class for color coding
+                    const category = this.getCategory(row.project);
+                    tr.className = `category-${category.toLowerCase()}`;
+
                     tr.innerHTML = `
                         <td class="action-cell">
                             ${this.currentWeekStart !== this.getCurrentWeekStart()
@@ -2170,6 +2188,9 @@
                 // Avoid touching the input; only patch the dependent cell
                 td.textContent = category;
                 td.title = full;
+
+                // Update row color class based on category
+                tr.className = `category-${category.toLowerCase()}`;
             },
 
             // ==================== CATEGORY SUMMARY ====================
