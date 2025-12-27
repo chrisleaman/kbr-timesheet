@@ -112,6 +112,36 @@ Each row has a "Duplicate" button next to the Delete button that creates a copy 
 - Click the "Duplicate" button on any row, OR
 - Use **Ctrl+D** keyboard shortcut when focused on a cell in that row
 
+## Column Sorting
+
+Click any column header to sort the timesheet table by that column.
+
+**Sorting Behavior:**
+- **First click**: Sort ascending (A→Z for text, 0→9 for numbers)
+  - Indicator changes to **▲** (blue up arrow)
+- **Second click**: Sort descending (Z→A for text, 9→0 for numbers)
+  - Indicator changes to **▼** (blue down arrow)
+- Click the **Clear Sort ✕** button (appears in toolbar when sorting is active) to restore the original insertion order
+  - All indicators return to **▾** (gray down triangle)
+
+**Sortable Columns:**
+All data columns can be sorted:
+- **Text fields**: Project, Project Task, Description
+- **Dropdown fields**: Cost Type, CBS, Role, Type, Work Location
+- **Calculated fields**:
+  - Category (sorts by abbreviation: BD, O, P, T)
+  - Total (sorts by row sum)
+- **Hour columns**: Monday through Sunday
+
+**Notes:**
+- Empty values always appear at the end of sorted lists
+- Text sorting is case-insensitive
+- Category and Total are calculated fields - changes to Project or hours do not automatically re-sort
+- Click the column header again to update the sort order after making changes
+- Adding or deleting rows during an active sort maintains the sort order
+- Each week remembers its own sort preference
+- Sort state is automatically saved to localStorage
+
 ## Copy/Paste
 
 The application supports copying and pasting data:

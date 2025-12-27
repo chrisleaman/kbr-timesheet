@@ -310,6 +310,36 @@
             padding: 10px 8px;
         }
 
+        /* Sortable Column Headers */
+        th.sortable {
+            cursor: pointer;
+            user-select: none;
+            transition: background-color 0.2s;
+        }
+
+        th.sortable:hover {
+            background-color: #e8e8e8;
+        }
+
+        .sort-indicator {
+            display: inline-block;
+            font-size: 10px;
+            color: #999;
+            margin-left: 3px;
+            transition: color 0.2s;
+        }
+
+        .sort-indicator.active {
+            color: #007bff;
+            font-weight: bold;
+        }
+
+        /* Ensure narrow columns still show indicator */
+        th.cat-col .sort-indicator {
+            font-size: 9px;
+            margin-left: 2px;
+        }
+
         /* Category Column */
         .cat-col {
             width: 50px;
@@ -1069,6 +1099,12 @@
                             aria-label="Go to current week" title="Jump to this week">
                         📍 This Week
                     </button>
+                    <button id="clearSortBtn" onclick="app.clearSort()"
+                            aria-label="Clear sort and restore original order"
+                            title="Clear sort and restore original order"
+                            style="display: none;">
+                        Clear Sort ✕
+                    </button>
                     <input type="date" id="weekPicker" class="sr-only"
                            onchange="app.jumpToWeek(this.value)"
                            aria-label="Select date to jump to week">
@@ -1098,23 +1134,57 @@
                 <thead>
                     <tr>
                         <th style="width: 80px;">Action</th>
-                        <th style="width: 200px;">Project</th>
-                        <th style="width: 180px;">Project Task</th>
-                        <th style="width: 150px;">Cost Type</th>
-                        <th style="width: 180px;">CBS</th>
-                        <th style="width: 120px;">Role</th>
-                        <th style="width: 100px;">Type</th>
-                        <th style="width: 130px;">Work Location</th>
-                        <th style="width: 200px;">Description</th>
-                        <th class="cat-col">Cat.</th>
-                        <th style="width: 60px;">Mon</th>
-                        <th style="width: 60px;">Tue</th>
-                        <th style="width: 60px;">Wed</th>
-                        <th style="width: 60px;">Thu</th>
-                        <th style="width: 60px;">Fri</th>
-                        <th style="width: 60px;">Sat</th>
-                        <th style="width: 60px;">Sun</th>
-                        <th style="width: 70px;">Total</th>
+                        <th style="width: 200px;" class="sortable" onclick="app.sortColumn('project')" aria-sort="none">
+                            Project <span id="sort-project" class="sort-indicator">▾</span>
+                        </th>
+                        <th style="width: 180px;" class="sortable" onclick="app.sortColumn('projectTask')" aria-sort="none">
+                            Project Task <span id="sort-projectTask" class="sort-indicator">▾</span>
+                        </th>
+                        <th style="width: 150px;" class="sortable" onclick="app.sortColumn('costType')" aria-sort="none">
+                            Cost Type <span id="sort-costType" class="sort-indicator">▾</span>
+                        </th>
+                        <th style="width: 180px;" class="sortable" onclick="app.sortColumn('cbs')" aria-sort="none">
+                            CBS <span id="sort-cbs" class="sort-indicator">▾</span>
+                        </th>
+                        <th style="width: 120px;" class="sortable" onclick="app.sortColumn('role')" aria-sort="none">
+                            Role <span id="sort-role" class="sort-indicator">▾</span>
+                        </th>
+                        <th style="width: 100px;" class="sortable" onclick="app.sortColumn('type')" aria-sort="none">
+                            Type <span id="sort-type" class="sort-indicator">▾</span>
+                        </th>
+                        <th style="width: 130px;" class="sortable" onclick="app.sortColumn('workLocation')" aria-sort="none">
+                            Work Location <span id="sort-workLocation" class="sort-indicator">▾</span>
+                        </th>
+                        <th style="width: 200px;" class="sortable" onclick="app.sortColumn('description')" aria-sort="none">
+                            Description <span id="sort-description" class="sort-indicator">▾</span>
+                        </th>
+                        <th class="cat-col sortable" onclick="app.sortColumn('category')" aria-sort="none">
+                            Cat. <span id="sort-category" class="sort-indicator">▾</span>
+                        </th>
+                        <th style="width: 60px;" class="sortable" onclick="app.sortColumn('mon')" aria-sort="none">
+                            Mon <span id="sort-mon" class="sort-indicator">▾</span>
+                        </th>
+                        <th style="width: 60px;" class="sortable" onclick="app.sortColumn('tue')" aria-sort="none">
+                            Tue <span id="sort-tue" class="sort-indicator">▾</span>
+                        </th>
+                        <th style="width: 60px;" class="sortable" onclick="app.sortColumn('wed')" aria-sort="none">
+                            Wed <span id="sort-wed" class="sort-indicator">▾</span>
+                        </th>
+                        <th style="width: 60px;" class="sortable" onclick="app.sortColumn('thu')" aria-sort="none">
+                            Thu <span id="sort-thu" class="sort-indicator">▾</span>
+                        </th>
+                        <th style="width: 60px;" class="sortable" onclick="app.sortColumn('fri')" aria-sort="none">
+                            Fri <span id="sort-fri" class="sort-indicator">▾</span>
+                        </th>
+                        <th style="width: 60px;" class="sortable" onclick="app.sortColumn('sat')" aria-sort="none">
+                            Sat <span id="sort-sat" class="sort-indicator">▾</span>
+                        </th>
+                        <th style="width: 60px;" class="sortable" onclick="app.sortColumn('sun')" aria-sort="none">
+                            Sun <span id="sort-sun" class="sort-indicator">▾</span>
+                        </th>
+                        <th style="width: 70px;" class="sortable" onclick="app.sortColumn('total')" aria-sort="none">
+                            Total <span id="sort-total" class="sort-indicator">▾</span>
+                        </th>
                     </tr>
                 </thead>
                 <tbody id="timesheetBody">
@@ -1883,6 +1953,83 @@
             ]
         };
 
+        // ==================== COLUMN SORTING CONFIGURATION ====================
+        const COLUMN_CONFIG = {
+            // Text fields
+            project: {
+                sortable: true,
+                type: 'text',
+                accessor: (row) => row.project || ''
+            },
+            projectTask: {
+                sortable: true,
+                type: 'text',
+                accessor: (row) => row.projectTask || ''
+            },
+            description: {
+                sortable: true,
+                type: 'text',
+                accessor: (row) => row.description || ''
+            },
+
+            // Dropdown fields
+            costType: {
+                sortable: true,
+                type: 'text',
+                accessor: (row) => row.costType || ''
+            },
+            cbs: {
+                sortable: true,
+                type: 'text',
+                accessor: (row) => row.cbs || ''
+            },
+            role: {
+                sortable: true,
+                type: 'text',
+                accessor: (row) => row.role || ''
+            },
+            type: {
+                sortable: true,
+                type: 'text',
+                accessor: (row) => row.type || ''
+            },
+            workLocation: {
+                sortable: true,
+                type: 'text',
+                accessor: (row) => row.workLocation || ''
+            },
+
+            // Calculated text field
+            category: {
+                sortable: true,
+                type: 'text',
+                accessor: function(row) {
+                    return this.getCategory(row.project) || '';
+                }
+            },
+
+            // Hour columns (numeric)
+            mon: { sortable: true, type: 'number', accessor: (row) => parseFloat(row.hours.mon) || 0 },
+            tue: { sortable: true, type: 'number', accessor: (row) => parseFloat(row.hours.tue) || 0 },
+            wed: { sortable: true, type: 'number', accessor: (row) => parseFloat(row.hours.wed) || 0 },
+            thu: { sortable: true, type: 'number', accessor: (row) => parseFloat(row.hours.thu) || 0 },
+            fri: { sortable: true, type: 'number', accessor: (row) => parseFloat(row.hours.fri) || 0 },
+            sat: { sortable: true, type: 'number', accessor: (row) => parseFloat(row.hours.sat) || 0 },
+            sun: { sortable: true, type: 'number', accessor: (row) => parseFloat(row.hours.sun) || 0 },
+
+            // Calculated numeric field
+            total: {
+                sortable: true,
+                type: 'number',
+                accessor: function(row) {
+                    return parseFloat(this.getRowTotal(row)) || 0;
+                }
+            },
+
+            // Non-sortable
+            action: { sortable: false }
+        };
+
         // ==================== DATA MODEL & STATE ====================
         const app = {
             data: {
@@ -1992,9 +2139,24 @@
 
             ensureWeekExists(weekStart) {
                 if (!this.data.weeks[weekStart]) {
+                    const newRow = this.createEmptyRow();
                     this.data.weeks[weekStart] = {
                         weekStart: weekStart,
-                        rows: [this.createEmptyRow()]
+                        rows: [newRow],
+                        sortState: {
+                            column: null,
+                            direction: null,
+                            originalOrder: [newRow.id]
+                        }
+                    };
+                }
+
+                // Migration: Ensure sortState exists for legacy data
+                if (!this.data.weeks[weekStart].sortState) {
+                    this.data.weeks[weekStart].sortState = {
+                        column: null,
+                        direction: null,
+                        originalOrder: this.data.weeks[weekStart].rows.map(r => r.id)
                     };
                 }
             },
@@ -2054,7 +2216,10 @@
             // ==================== UI RENDERING ====================
             render() {
                 this.renderWeekDisplay();
+                this.applySortIfNeeded();       // Apply sort before rendering table
                 this.renderTable();
+                this.updateSortIndicators();    // Update visual indicators
+                this.updateClearSortButton();   // Show/hide Clear Sort button
                 this.updateTotals();
                 this.validateAndDisplay();
             },
@@ -2400,7 +2565,12 @@
             // ==================== ROW OPERATIONS ====================
             addRow() {
                 const currentWeek = this.data.weeks[this.currentWeekStart];
-                currentWeek.rows.push(this.createEmptyRow());
+                const newRow = this.createEmptyRow();
+                currentWeek.rows.push(newRow);
+
+                // Track in original order
+                currentWeek.sortState.originalOrder.push(newRow.id);
+
                 this.render();
                 this.saveData();
             },
@@ -2408,8 +2578,16 @@
             deleteRow(rowId) {
                 const currentWeek = this.data.weeks[this.currentWeekStart];
                 currentWeek.rows = currentWeek.rows.filter(r => r.id !== rowId);
+
+                // Remove from original order
+                currentWeek.sortState.originalOrder =
+                    currentWeek.sortState.originalOrder.filter(id => id !== rowId);
+
                 if (currentWeek.rows.length === 0) {
-                    currentWeek.rows.push(this.createEmptyRow());
+                    const newRow = this.createEmptyRow();
+                    currentWeek.rows.push(newRow);
+                    // Reset original order for new empty row
+                    currentWeek.sortState.originalOrder = [newRow.id];
                 }
                 this.render();
                 this.saveData();
@@ -2424,6 +2602,16 @@
                     newRow.hours = { mon: 0, tue: 0, wed: 0, thu: 0, fri: 0, sat: 0, sun: 0 };
                     const index = currentWeek.rows.findIndex(r => r.id === rowId);
                     currentWeek.rows.splice(index + 1, 0, newRow);
+
+                    // Insert into original order right after source
+                    const origIndex = currentWeek.sortState.originalOrder.indexOf(rowId);
+                    if (origIndex !== -1) {
+                        currentWeek.sortState.originalOrder.splice(origIndex + 1, 0, newRow.id);
+                    } else {
+                        // Fallback: append to end if source not found
+                        currentWeek.sortState.originalOrder.push(newRow.id);
+                    }
+
                     this.render();
                     this.saveData();
                 }
@@ -2456,6 +2644,9 @@
 
                 // Append to target week
                 targetWeek.rows.push(newRow);
+
+                // Track in original order
+                targetWeek.sortState.originalOrder.push(newRow.id);
 
                 // Save data (don't re-render since we're not viewing target week)
                 this.saveData();
@@ -2505,6 +2696,159 @@
                 this.data.preferences.lastWeekStart = this.currentWeekStart;
                 this.render();
                 this.saveData();
+            },
+
+            // ==================== COLUMN SORTING ====================
+            sortColumn(columnName) {
+                const week = this.data.weeks[this.currentWeekStart];
+                if (!week || !week.sortState) return;
+
+                const config = COLUMN_CONFIG[columnName];
+                if (!config || !config.sortable) return;
+
+                const { sortState } = week;
+
+                // Two-state cycle logic
+                if (sortState.column !== columnName) {
+                    // New column: start with ascending
+                    sortState.column = columnName;
+                    sortState.direction = 'asc';
+                } else if (sortState.direction === 'asc') {
+                    // Same column, was ascending: go descending
+                    sortState.direction = 'desc';
+                } else {
+                    // Same column, was descending: toggle back to ascending
+                    sortState.direction = 'asc';
+                }
+
+                // Apply sort
+                this.applySortToRows(columnName, sortState.direction, config);
+
+                // Re-render table and update indicators
+                this.render();
+                this.debouncedSave();
+            },
+
+            applySortToRows(columnName, direction, config) {
+                const week = this.data.weeks[this.currentWeekStart];
+                const { accessor, type } = config;
+
+                week.rows.sort((a, b) => {
+                    // Extract values using accessor (bind this for calculated fields)
+                    const valA = accessor.call(this, a);
+                    const valB = accessor.call(this, b);
+
+                    // Handle empty/null values: always sort to end
+                    const isEmptyA = valA === null || valA === undefined || valA === '';
+                    const isEmptyB = valB === null || valB === undefined || valB === '';
+
+                    if (isEmptyA && isEmptyB) return 0;
+                    if (isEmptyA) return 1;   // A to end
+                    if (isEmptyB) return -1;  // B to end
+
+                    // Perform type-specific comparison
+                    let comparison;
+                    if (type === 'number') {
+                        const numA = parseFloat(valA);
+                        const numB = parseFloat(valB);
+                        comparison = numA - numB;
+                    } else {
+                        // Text comparison: case-insensitive, locale-aware
+                        comparison = String(valA).toLowerCase().localeCompare(
+                            String(valB).toLowerCase()
+                        );
+                    }
+
+                    // Apply direction
+                    return direction === 'asc' ? comparison : -comparison;
+                });
+            },
+
+            clearSort() {
+                const week = this.data.weeks[this.currentWeekStart];
+                if (!week || !week.sortState) return;
+
+                // Clear sort state
+                week.sortState.column = null;
+                week.sortState.direction = null;
+
+                // Restore original order
+                this.restoreOriginalOrder();
+
+                // Re-render and save
+                this.render();
+                this.debouncedSave();
+            },
+
+            restoreOriginalOrder() {
+                const week = this.data.weeks[this.currentWeekStart];
+                const { originalOrder } = week.sortState;
+
+                // Build map for O(1) row lookup by ID
+                const rowMap = new Map(week.rows.map(r => [r.id, r]));
+
+                // Rebuild rows array in original order (skip any deleted IDs)
+                week.rows = originalOrder
+                    .filter(id => rowMap.has(id))
+                    .map(id => rowMap.get(id));
+            },
+
+            applySortIfNeeded() {
+                const week = this.data.weeks[this.currentWeekStart];
+                if (!week || !week.sortState) return;
+
+                const { column, direction } = week.sortState;
+
+                // Apply active sort state when rendering week
+                if (column && direction) {
+                    const config = COLUMN_CONFIG[column];
+                    if (config && config.sortable) {
+                        this.applySortToRows(column, direction, config);
+                    }
+                }
+            },
+
+            updateSortIndicators() {
+                const week = this.data.weeks[this.currentWeekStart];
+                if (!week || !week.sortState) return;
+
+                const { column, direction } = week.sortState;
+
+                // Update all column header indicators
+                Object.keys(COLUMN_CONFIG).forEach(col => {
+                    if (!COLUMN_CONFIG[col].sortable) return;
+
+                    const header = document.querySelector(`th[onclick="app.sortColumn('${col}')"]`);
+                    const indicator = document.getElementById(`sort-${col}`);
+
+                    if (header && indicator) {
+                        if (col === column && direction) {
+                            // Active sort column
+                            indicator.textContent = direction === 'asc' ? '▲' : '▼';
+                            indicator.classList.add('active');
+                            header.setAttribute('aria-sort', direction === 'asc' ? 'ascending' : 'descending');
+                        } else {
+                            // Inactive sortable column
+                            indicator.textContent = '▾';
+                            indicator.classList.remove('active');
+                            header.setAttribute('aria-sort', 'none');
+                        }
+                    }
+                });
+            },
+
+            updateClearSortButton() {
+                const week = this.data.weeks[this.currentWeekStart];
+                const clearBtn = document.getElementById('clearSortBtn');
+
+                if (clearBtn && week && week.sortState) {
+                    // Show button only when sort is active
+                    if (week.sortState.column && week.sortState.direction) {
+                        clearBtn.style.display = 'inline-block';
+                    } else {
+                        clearBtn.style.display = 'none';
+                    }
+                }
             },
 
             // ==================== WEEK NAVIGATION ====================
