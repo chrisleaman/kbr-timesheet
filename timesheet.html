@@ -1,0 +1,3275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KBR Timesheet Helper</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-size: 14px;
+            color: #333;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        header {
+            margin-bottom: 20px;
+            border-bottom: 2px solid #0066cc;
+            padding-bottom: 15px;
+            /* Flexbox layout for logo placement */
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+
+        h1 {
+            color: #0066cc;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        /* Header content wrapper */
+        .header-content {
+            flex: 1 1 500px;
+            max-width: 1200px;
+            min-width: 0;
+        }
+
+        /* KBR Logo styling */
+        .header-logo {
+            height: 45px;
+            width: auto;
+            flex-shrink: 0;
+            margin-left: auto;
+        }
+
+        .week-nav {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .week-nav button {
+            padding: 8px 16px;
+            background-color: #0066cc;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            line-height: 1;
+            box-sizing: border-box;
+        }
+
+        .week-nav button:hover {
+            background-color: #0052a3;
+        }
+
+        .week-display {
+            font-weight: bold;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .btn:hover {
+            background-color: #218838;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+        }
+
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+
+        .validation-panel {
+            margin-bottom: 15px;
+            padding: 12px;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .validation-panel.has-errors {
+            display: block;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .validation-panel.has-warnings {
+            display: block;
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            color: #856404;
+        }
+
+        .validation-panel h3 {
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .validation-panel ul {
+            margin-left: 20px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1600px;
+        }
+
+        thead {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background-color: #f8f9fa;
+        }
+
+        th {
+            background-color: #0066cc;
+            color: white;
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: 600;
+            border: 1px solid #004c99;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 6px 8px;
+            border: 1px solid #ddd;
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        tbody tr:hover {
+            background-color: #e9ecef;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 6px;
+            border: 1px solid #ced4da;
+            border-radius: 3px;
+            font-size: 13px;
+        }
+
+        input:focus, select:focus {
+            outline: 2px solid #0066cc;
+            outline-offset: 1px;
+        }
+
+        input.hours-input {
+            width: 60px;
+            text-align: right;
+        }
+
+        input.validation-error {
+            border-color: #dc3545;
+            background-color: #ffe6e6;
+        }
+
+        input.validation-warning {
+            border-color: #ffc107;
+            background-color: #fff8e1;
+        }
+
+        .delete-btn {
+            display: inline-block;
+            padding: 4px 8px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 14px;
+            min-width: 28px;
+        }
+
+        .delete-btn:hover {
+            background-color: #c82333;
+        }
+
+        .duplicate-btn {
+            display: inline-block;
+            padding: 4px 8px;
+            background-color: #0066cc;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 14px;
+            min-width: 28px;
+        }
+
+        .duplicate-btn:hover {
+            background-color: #0052a3;
+        }
+
+        /* Copy to Current Week button */
+        .copy-to-current-btn {
+            display: inline-block;
+            padding: 4px 8px;
+            background-color: #28a745;  /* Green */
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 14px;
+            min-width: 28px;
+        }
+
+        .copy-to-current-btn:hover {
+            background-color: #218838;  /* Darker green on hover */
+        }
+
+        .action-cell {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            white-space: nowrap;
+        }
+
+        .action-cell button {
+            display: inline-flex;
+        }
+
+        .totals-row {
+            font-weight: bold;
+            background-color: #e3f2fd !important;
+        }
+
+        .totals-row td {
+            padding: 10px 8px;
+        }
+
+        /* Category Column */
+        .cat-col {
+            width: 50px;
+            text-align: center;
+        }
+
+        .category-cell {
+            text-align: center;
+            background-color: #f9f9f9;
+            color: #666;
+            font-weight: 500;
+            font-size: 13px;
+            cursor: help;
+            padding: 8px 4px;
+        }
+
+        /* Weekly Summary by Category */
+        .category-summary {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #ddd;
+        }
+
+        .category-summary h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .category-cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+
+        .category-card {
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            text-align: center;
+        }
+
+        .category-card.bd-card {
+            border-left: 4px solid #ff9800;
+        }
+
+        .category-card.o-card {
+            border-left: 4px solid #9c27b0;
+        }
+
+        .category-card.t-card {
+            border-left: 4px solid #4caf50;
+        }
+
+        .category-card.p-card {
+            border-left: 4px solid #2196f3;
+        }
+
+        .category-title {
+            font-weight: bold;
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .category-hours {
+            font-size: 20px;
+            font-weight: bold;
+            color: #0066cc;
+            margin-bottom: 4px;
+        }
+
+        .category-percent {
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .category-cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .category-cards {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            color: #0066cc;
+        }
+
+        .close-btn {
+            font-size: 28px;
+            font-weight: bold;
+            color: #aaa;
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+
+        .close-btn:hover {
+            color: #000;
+        }
+
+        .template-list {
+            list-style: none;
+            margin-top: 15px;
+        }
+
+        .template-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+
+        .template-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .template-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .week-rows-list {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+
+        .week-row-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .week-row-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .week-row-item input[type="checkbox"] {
+            width: auto;
+            margin-right: 10px;
+        }
+
+        /* Checkbox label alignment fix */
+        label.checkbox-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            line-height: 1.2;
+            white-space: nowrap;
+        }
+
+        label.checkbox-label > input[type="checkbox"] {
+            margin: 0;
+        }
+
+        .week-row-details {
+            flex: 1;
+        }
+
+        .week-row-details strong {
+            display: block;
+            margin-bottom: 3px;
+        }
+
+        .week-row-details small {
+            color: #666;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Copy Success Toast Notification */
+        .copy-toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #28a745;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            z-index: 1001;
+            animation: slideIn 0.3s ease-out;
+            max-width: 500px;
+        }
+
+        .copy-toast.fade-out {
+            animation: fadeOut 0.3s ease-out forwards;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+
+        .toast-view-btn {
+            background-color: white;
+            color: #28a745;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+
+        .toast-view-btn:hover {
+            background-color: #f0f0f0;
+        }
+
+        .toast-dismiss-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0 5px;
+            line-height: 1;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+
+        .toast-dismiss-btn:hover {
+            opacity: 1;
+        }
+
+        /* Print styles */
+        @media print {
+            body {
+                background-color: white;
+                padding: 0;
+            }
+
+            .container {
+                box-shadow: none;
+                padding: 10px;
+            }
+
+            .controls, .week-nav, .btn, .delete-btn, .validation-panel {
+                display: none !important;
+            }
+
+            table {
+                font-size: 10px;
+                min-width: 100%;
+            }
+
+            th, td {
+                padding: 4px;
+            }
+
+            thead {
+                position: static;
+            }
+        }
+
+        /* Expected Hours */
+        .expected-hours-container {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .expected-hours-text {
+            font-size: 14px;
+            color: #333;
+        }
+
+        .cog-btn {
+            background: transparent;
+            border: 1px solid #ccc;
+            padding: 2px 6px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+
+        .cog-btn:hover {
+            background: #f0f0f0;
+            border-color: #0066cc;
+        }
+
+        /* Week Picker */
+        .week-display-btn {
+            background: transparent;
+            border: none;
+            font-weight: bold;
+            font-size: 16px;
+            color: #333;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 4px;
+        }
+
+        .week-display-btn:hover {
+            background: #f0f0f0;
+            text-decoration: underline;
+        }
+
+        .this-week-btn {
+            background: #f0f0f0;
+            border: 1px solid #0066cc;
+            padding: 7px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            line-height: 1;
+            margin-left: 15px;
+            color: #0066cc;
+            font-weight: 500;
+            box-sizing: border-box;
+        }
+
+        .this-week-btn:hover {
+            background: #e3f2fd;
+            border-color: #0052a3;
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border-width: 0;
+        }
+
+        /* ==================== DOCUMENTATION SECTIONS ==================== */
+
+        .documentation-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #ddd;
+        }
+
+        /* Accordion Styling */
+        .doc-accordion {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .doc-accordion-header {
+            background: linear-gradient(to bottom, #f8f9fa, #e9ecef);
+            padding: 15px 20px;
+            cursor: pointer;
+            list-style: none;
+            border-bottom: 1px solid #ddd;
+            transition: background-color 0.2s;
+        }
+
+        .doc-accordion-header:hover {
+            background: #e9ecef;
+        }
+
+        .doc-accordion-header h2 {
+            margin: 0;
+            color: #0066cc;
+            font-size: 18px;
+            display: inline-block;
+        }
+
+        .doc-accordion-header::marker {
+            content: '▶ ';
+            color: #0066cc;
+        }
+
+        .doc-accordion[open] .doc-accordion-header::marker {
+            content: '▼ ';
+        }
+
+        .doc-accordion-content {
+            padding: 20px;
+        }
+
+        .doc-intro {
+            font-size: 15px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        /* Import Steps */
+        .import-steps {
+            display: grid;
+            gap: 20px;
+        }
+
+        .step-card {
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: auto 1fr 250px;
+            grid-template-rows: auto auto;
+            gap: 15px;
+            align-items: start;
+        }
+
+        .step-number {
+            grid-row: 1 / -1;
+            background: #0066cc;
+            color: white;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .step-card h3 {
+            margin: 0 0 10px 0;
+            color: #333;
+            font-size: 16px;
+        }
+
+        .step-card p {
+            margin: 0 0 10px 0;
+            color: #666;
+        }
+
+        .step-card ul {
+            margin: 10px 0;
+            padding-left: 20px;
+            color: #666;
+        }
+
+        .step-card ul li {
+            margin: 5px 0;
+        }
+
+        .step-image-placeholder {
+            grid-row: 1 / -1;
+            grid-column: 3;
+            background: #f5f5f5;
+            border: 2px dashed #ddd;
+            border-radius: 4px;
+            padding: 20px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 150px;
+        }
+
+        .placeholder-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+            opacity: 0.5;
+        }
+
+        .placeholder-text {
+            font-size: 12px;
+            color: #999;
+            font-style: italic;
+        }
+
+        /* Tip Callout */
+        .doc-tip {
+            background: #e8f5e9;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+            color: #333;
+        }
+
+        .doc-tip strong {
+            color: #28a745;
+        }
+
+        /* FAQ Search */
+        .faq-search-container {
+            margin-bottom: 20px;
+        }
+
+        .faq-search-input {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .faq-search-input:focus {
+            outline: none;
+            border-color: #0066cc;
+            box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1);
+        }
+
+        /* FAQ Index */
+        .faq-index {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .faq-index h3 {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            color: #666;
+            text-transform: uppercase;
+        }
+
+        .faq-index ul {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 8px;
+        }
+
+        .faq-index li {
+            margin: 0;
+        }
+
+        .faq-index a {
+            color: #0066cc;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .faq-index a:hover {
+            text-decoration: underline;
+        }
+
+        /* FAQ Categories */
+        .faq-category {
+            margin-bottom: 30px;
+        }
+
+        .faq-category h3 {
+            color: #0066cc;
+            font-size: 16px;
+            margin: 0 0 15px 0;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #0066cc;
+        }
+
+        /* FAQ Items */
+        .faq-item {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            padding: 15px;
+            transition: box-shadow 0.2s;
+        }
+
+        .faq-item:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .faq-item.hidden {
+            display: none;
+        }
+
+        .faq-question {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 15px;
+        }
+
+        .faq-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-right: 8px;
+        }
+
+        .faq-badge.error {
+            background: #dc3545;
+            color: white;
+        }
+
+        .faq-badge.warning {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .faq-badge.info {
+            background: #0066cc;
+            color: white;
+        }
+
+        .faq-answer {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .faq-answer p {
+            margin: 8px 0;
+        }
+
+        .faq-answer strong {
+            color: #333;
+        }
+
+        .faq-answer code {
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+
+        /* Responsive Design for Documentation */
+        @media (max-width: 768px) {
+            .step-card {
+                grid-template-columns: auto 1fr;
+                grid-template-rows: auto auto auto;
+            }
+
+            .step-image-placeholder {
+                grid-row: 3;
+                grid-column: 1 / -1;
+            }
+
+            .faq-index ul {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media print {
+            .documentation-section {
+                page-break-before: always;
+            }
+
+            .doc-accordion {
+                border: none;
+            }
+
+            .doc-accordion-header::marker {
+                content: '';
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <h1>KBR Timesheet Helper</h1>
+                <div class="expected-hours-container">
+                    <span class="expected-hours-text">Expected hours per week: <span id="expectedHoursValue">38</span> hours</span>
+                    <button class="cog-btn" onclick="app.showExpectedHoursModal()"
+                            aria-label="Edit expected hours" title="Edit expected hours">⚙️</button>
+                </div>
+                <div class="week-nav">
+                    <button onclick="app.previousWeek()">← Previous Week</button>
+                    <button class="week-display-btn" onclick="app.openWeekPicker()"
+                            aria-label="Choose week" id="weekDisplay">
+                        Week of...
+                    </button>
+                    <button onclick="app.nextWeek()">Next Week →</button>
+                    <button class="this-week-btn" onclick="app.goToCurrentWeek()"
+                            aria-label="Go to current week" title="Jump to this week">
+                        📍 This Week
+                    </button>
+                    <input type="date" id="weekPicker" class="sr-only"
+                           onchange="app.jumpToWeek(this.value)"
+                           aria-label="Select date to jump to week">
+                </div>
+            </div>
+            <img src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='270.73'%20height='149.92'%20viewBox='0%200%20500%20280'%3E%3Cg%3E%3Crect%20x='153.2'%20y='73.7'%20width='26.1'%20height='27.2'%20fill='%2300783f'/%3E%3Crect%20x='158.4'%20y='26.8'%20width='20.7'%20height='20.7'/%3E%3Crect%20x='193.3'%20y='35.4'%20width='10.8'%20height='10.8'%20fill='%23a2c7e2'/%3E%3Crect%20x='212.5'%20y='38.4'%20width='6.7'%20height='6.7'/%3E%3Crect%20x='211'%20y='51.3'%20width='14.2'%20height='14.2'%20fill='%2300205c'/%3E%3Crect%20x='197.9'%20y='71.8'%20width='23.6'%20height='23.6'%20fill='%23a2c7e2'/%3E%3Crect%20x='186.7'%20y='53.5'%20width='10.2'%20height='10.2'%20fill='%2300783f'/%3E%3Crect%20x='230'%20y='68.4'%20width='8'%20height='8'%20fill='%2300783f'/%3E%3Crect%20x='187.3'%20y='21'%20width='7.6'%20height='7.6'%20fill='%2300205c'/%3E%3Crect%20x='167.8'%20y='56.8'%20width='10.2'%20height='10.2'%20fill='%23a2c7e2'/%3E%3Cpath%20d='M174.2,168.3c-9.7,1.4-19.5,1-30,1-43.4,0-82.1-13.1-99.7-31.3-8.6-31.5-2.4-61,9.1-81.6-5.4-2.7-9.5-5.9-13.7-9.1-20.2,29.1-24.2,62.2-15.2,92.2,17,18.9,57.3,33.1,101.7,33.1,17.3,0.1,33.2-0.8,47.8-4.3zm-117-1.6c-10.3-2.5-20.3-9-27.9-14.7,18.7,40.9,59.8,66,100.5,66.1,3.4,0,8.7,0.2,11.9-0.1-31.3-2.5-64.2-19.2-84.5-51.3zM99.8,64.9c33.9,5.3,65.2,0.6,65.2,0.6-26.8,0.9-47.6-2-63.4-6.1-0.5,1.3-1.2,3.2-1.8,5.5zM80.5,79.4c-5.1,27.6-3.6,55.7,4.6,72.4-3.4-17.9-3.1-41.6,1.4-64.9,7-36.5,27.5-60.7,46.2-72.5-14.5,3-33.1,18.5-44.1,41C73.9,50.1,65.8,44.3,62.9,42,79.1,21,105.6,3.4,134.6,0,100.5-0.9,65.2,14.9,43.8,42.5c12,9.7,26.7,15.8,41.7,19.5-2.2,5.5-3.9,11.3-5,17.4zm148.2,73.3c0,0-13.8,40.1-55.1,58.4,0,0,50.5-15.9,67.5-69.6,0-0.1-7.3,7.5-12.4,11.2z'%20fill='%23004987'/%3E%3Cpath%20d='M339,181.7l-0.1-0.1c6.5-7.7,9.3-17.1,9.3-25.9v-0.4c0-20.5-14.7-41.1-47.5-41.1h-87.8l-49.6,54.9V114.2H132.4V260h30.9V201.5L219.8,260H303c13.8,0,24.9-2.7,33.8-8.2,12.3-7.7,19.4-20.7,19.4-35.6v-0.5c0-14-6.1-26.1-17.2-34zm-152.5,1.4l61-67.4v130.9zm138.2,33.1c0,13.1-10.8,18.7-28,18.7H278.1V139.5H296c14.4,0,22.3,5.7,22.3,15.9v0.4c0,11.5-9.5,16.4-24.5,16.4H286v25.4h13.2c16.4,0,25.5,6.6,25.5,18.1z'%20fill='%23004987'/%3E%3Cpath%20d='M471,260l-36.2-68.2c16.3-7.8,22.6-22.7,22.6-36.1v-0.4c0-20.5-14.7-41.1-47.5-41.1H356V260h30.8V139.4h18.6c14.4,0,22.3,5.7,22.3,15.9v0.4c0,11.5-9.5,16.4-24.5,16.4h-8.5v25.4h10.9L439,260Z'%20fill='%23004987'/%3E%3Cpath%20d='M54.8,26L59.3,14.3C59.4,14,59,13.8,58.9,14.1l-9.7,13,2-10.9C51.3,15.8,50.7,15.6,50.5,16l-5,10.1V9.7C45.5,9.4,45.1,9.4,45,9.6L40.7,25.2,38.6,14.4C38.5,14,37.9,14,37.9,14.4l-1.1,11.3-6-15.4C30.7,10,30.3,10.1,30.3,10.4L31.9,26.5,26,17.1C25.8,16.7,25.2,17,25.3,17.4l3.1,11-11.1-12.3c-0.2-0.2-0.5,0-0.4,0.3l7.3,14.4-8.8-6.5c-0.3-0.3-0.8,0.2-0.5,0.5l6.9,9.1-15-7.4C6.5,26.4,6.3,26.7,6.5,26.9L18.4,37.6,8,34.7C7.6,34.6,7.3,35.1,7.7,35.4l9.7,6L0.9,40c-0.3,0-0.4,0.4-0.1,0.5l15,5.7-10.8,1c-0.4,0-0.5,0.7,0,0.7l11.2,2.1-16,4.6c-0.3,0.1-0.2,0.5,0.1,0.5l16-0.1-9.7,4.9c-0.4,0.2-0.2,0.8,0.2,0.7L18,58.5,4.8,68.6c-0.2,0.2,0,0.5,0.2,0.4l15-5.9-7.3,8.1c-0.3,0.3,0.1,0.8,0.5,0.6l9.7-6-8.7,14.2c-0.1,0.2,0.2,0.5,0.4,0.3l8.5-7.8C30.4,50.4,44.9,34.7,54.8,26Z'%20fill='%23ffda00'/%3E%3C/g%3E%3C/svg%3E"
+                 alt="KBR Logo"
+                 class="header-logo">
+        </header>
+
+        <div class="controls">
+            <button class="btn" onclick="app.addRow()">+ Add Row</button>
+            <button class="btn" onclick="app.exportCSV()">Export CSV</button>
+            <button class="btn btn-secondary" onclick="app.exportJSON()">Export Backup (JSON)</button>
+            <button class="btn btn-secondary" onclick="app.importJSON()">Import Backup (JSON)</button>
+            <button class="btn btn-secondary" onclick="app.showTemplates()">Templates</button>
+            <button class="btn btn-secondary" onclick="app.showCopyFromWeek()">Copy from Other Week</button>
+        </div>
+
+        <div class="validation-panel" id="validationPanel">
+            <h3>Validation Issues</h3>
+            <ul id="validationList"></ul>
+        </div>
+
+        <div class="table-container">
+            <table id="timesheetTable">
+                <thead>
+                    <tr>
+                        <th style="width: 80px;">Action</th>
+                        <th style="width: 200px;">Project</th>
+                        <th style="width: 180px;">Project Task</th>
+                        <th style="width: 150px;">Cost Type</th>
+                        <th style="width: 180px;">CBS</th>
+                        <th style="width: 120px;">Role</th>
+                        <th style="width: 100px;">Type</th>
+                        <th style="width: 130px;">Work Location</th>
+                        <th style="width: 200px;">Description</th>
+                        <th class="cat-col">Cat.</th>
+                        <th style="width: 60px;">Mon</th>
+                        <th style="width: 60px;">Tue</th>
+                        <th style="width: 60px;">Wed</th>
+                        <th style="width: 60px;">Thu</th>
+                        <th style="width: 60px;">Fri</th>
+                        <th style="width: 60px;">Sat</th>
+                        <th style="width: 60px;">Sun</th>
+                        <th style="width: 70px;">Total</th>
+                    </tr>
+                </thead>
+                <tbody id="timesheetBody">
+                </tbody>
+                <tfoot>
+                    <tr class="totals-row">
+                        <td colspan="10" style="text-align: right;">Daily Totals:</td>
+                        <td id="totalMon">0</td>
+                        <td id="totalTue">0</td>
+                        <td id="totalWed">0</td>
+                        <td id="totalThu">0</td>
+                        <td id="totalFri">0</td>
+                        <td id="totalSat">0</td>
+                        <td id="totalSun">0</td>
+                        <td id="totalAll">0</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <!-- Weekly Summary by Category -->
+        <div class="category-summary" id="categorySummary">
+            <h2>Weekly Summary by Category</h2>
+            <div class="category-cards">
+                <div class="category-card bd-card">
+                    <div class="category-title">Business Development</div>
+                    <div class="category-hours" id="bdHours">0.0 hrs</div>
+                    <div class="category-percent" id="bdPercent">0.0%</div>
+                </div>
+                <div class="category-card o-card">
+                    <div class="category-title">Overheads</div>
+                    <div class="category-hours" id="oHours">0.0 hrs</div>
+                    <div class="category-percent" id="oPercent">0.0%</div>
+                </div>
+                <div class="category-card t-card">
+                    <div class="category-title">Time Off</div>
+                    <div class="category-hours" id="tHours">0.0 hrs</div>
+                    <div class="category-percent" id="tPercent">0.0%</div>
+                </div>
+                <div class="category-card p-card">
+                    <div class="category-title">Productive</div>
+                    <div class="category-hours" id="pHours">0.0 hrs</div>
+                    <div class="category-percent" id="pPercent">0.0%</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Documentation Sections -->
+        <div class="documentation-section">
+
+            <!-- CSV Import Guide -->
+            <details class="doc-accordion">
+                <summary class="doc-accordion-header">
+                    <h2>📊 How to Import CSV into Microsoft Dynamics</h2>
+                </summary>
+                <div class="doc-accordion-content">
+                    <p class="doc-intro">Follow these steps to import your exported timesheet CSV into Microsoft Dynamics (MSD).</p>
+
+                    <!-- Step Cards -->
+                    <div class="import-steps">
+
+                        <!-- Step 1 -->
+                        <div class="step-card">
+                            <div class="step-number">1</div>
+                            <div>
+                                <h3>Export Your Timesheet CSV</h3>
+                                <p>Click the "Export CSV" button at the top of your timesheet to download your weekly hours.</p>
+                                <ul>
+                                    <li>Ensure all validation errors are resolved before exporting</li>
+                                    <li>CSV file will be named: <code>Timesheet_YYYY-MM-DD.csv</code></li>
+                                    <li>File will download to your default downloads folder</li>
+                                </ul>
+                            </div>
+                            <div class="step-image-placeholder">
+                                <div class="placeholder-icon">🖼️</div>
+                                <div class="placeholder-text">Screenshot: Export CSV button location</div>
+                            </div>
+                        </div>
+
+                        <!-- Step 2 -->
+                        <div class="step-card">
+                            <div class="step-number">2</div>
+                            <div>
+                                <h3>Open Microsoft Dynamics</h3>
+                                <p>Log into your Microsoft Dynamics instance and navigate to the timesheet module.</p>
+                                <ul>
+                                    <li>Use your company credentials to access MSD</li>
+                                    <li>Navigate to Project Management → Timesheets</li>
+                                    <li>Ensure you have import permissions for your role</li>
+                                </ul>
+                            </div>
+                            <div class="step-image-placeholder">
+                                <div class="placeholder-icon">🖼️</div>
+                                <div class="placeholder-text">Screenshot: MSD navigation menu</div>
+                            </div>
+                        </div>
+
+                        <!-- Step 3 -->
+                        <div class="step-card">
+                            <div class="step-number">3</div>
+                            <div>
+                                <h3>Access Import Wizard</h3>
+                                <p>Locate and open the CSV import functionality in Microsoft Dynamics.</p>
+                                <ul>
+                                    <li>Look for "Import" or "Upload Timesheet" button</li>
+                                    <li>Select "Import from CSV" or "Import from File" option</li>
+                                    <li>The import wizard should open in a new dialog</li>
+                                </ul>
+                            </div>
+                            <div class="step-image-placeholder">
+                                <div class="placeholder-icon">🖼️</div>
+                                <div class="placeholder-text">Screenshot: Import wizard access point</div>
+                            </div>
+                        </div>
+
+                        <!-- Step 4 -->
+                        <div class="step-card">
+                            <div class="step-number">4</div>
+                            <div>
+                                <h3>Select CSV File</h3>
+                                <p>Browse for and select your exported timesheet CSV file.</p>
+                                <ul>
+                                    <li>Click "Browse" or "Choose File" button</li>
+                                    <li>Navigate to your downloads folder</li>
+                                    <li>Select the <code>Timesheet_YYYY-MM-DD.csv</code> file</li>
+                                    <li>Verify the file name appears in the import dialog</li>
+                                </ul>
+                            </div>
+                            <div class="step-image-placeholder">
+                                <div class="placeholder-icon">🖼️</div>
+                                <div class="placeholder-text">Screenshot: File selection dialog</div>
+                            </div>
+                        </div>
+
+                        <!-- Step 5 -->
+                        <div class="step-card">
+                            <div class="step-number">5</div>
+                            <div>
+                                <h3>Map CSV Columns</h3>
+                                <p>Verify that CSV columns are correctly mapped to MSD fields.</p>
+                                <ul>
+                                    <li>Check that Project, Task, Date, and Duration fields are mapped</li>
+                                    <li>Ensure Cost Type, CBS, and Role fields align correctly</li>
+                                    <li>Most systems auto-detect standard CSV headers</li>
+                                    <li>Adjust mappings if necessary</li>
+                                </ul>
+                            </div>
+                            <div class="step-image-placeholder">
+                                <div class="placeholder-icon">🖼️</div>
+                                <div class="placeholder-text">Screenshot: Column mapping screen</div>
+                            </div>
+                        </div>
+
+                        <!-- Step 6 -->
+                        <div class="step-card">
+                            <div class="step-number">6</div>
+                            <div>
+                                <h3>Validate Import Data</h3>
+                                <p>Review the import preview and check for any validation errors.</p>
+                                <ul>
+                                    <li>Check the row count matches your expectations</li>
+                                    <li>Verify project codes are recognized by MSD</li>
+                                    <li>Review any warning or error messages</li>
+                                    <li>Ensure date formats are correct (DD/MM/YYYY)</li>
+                                </ul>
+                            </div>
+                            <div class="step-image-placeholder">
+                                <div class="placeholder-icon">🖼️</div>
+                                <div class="placeholder-text">Screenshot: Validation summary screen</div>
+                            </div>
+                        </div>
+
+                        <!-- Step 7 -->
+                        <div class="step-card">
+                            <div class="step-number">7</div>
+                            <div>
+                                <h3>Confirm and Import</h3>
+                                <p>Finalize the import process and submit your timesheet data.</p>
+                                <ul>
+                                    <li>Review the final summary of hours to be imported</li>
+                                    <li>Click "Import" or "Submit" button</li>
+                                    <li>Wait for the import process to complete</li>
+                                    <li>Note any confirmation or reference number</li>
+                                </ul>
+                            </div>
+                            <div class="step-image-placeholder">
+                                <div class="placeholder-icon">🖼️</div>
+                                <div class="placeholder-text">Screenshot: Import confirmation dialog</div>
+                            </div>
+                        </div>
+
+                        <!-- Step 8 -->
+                        <div class="step-card">
+                            <div class="step-number">8</div>
+                            <div>
+                                <h3>Verify Import Success</h3>
+                                <p>Check that your hours have been successfully imported into Microsoft Dynamics.</p>
+                                <ul>
+                                    <li>Navigate to your timesheet view in MSD</li>
+                                    <li>Verify the correct week's hours are showing</li>
+                                    <li>Check that all projects and tasks imported correctly</li>
+                                    <li>Confirm total hours match your weekly total</li>
+                                </ul>
+                            </div>
+                            <div class="step-image-placeholder">
+                                <div class="placeholder-icon">🖼️</div>
+                                <div class="placeholder-text">Screenshot: Imported timesheet in MSD</div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Tips Section -->
+                    <div class="doc-tip">
+                        <strong>💡 Tip:</strong> Save your CSV file with a descriptive name before importing (e.g., "Week_Dec22_YourName.csv") to make it easier to identify if you need to re-import.
+                    </div>
+                </div>
+            </details>
+
+            <!-- Troubleshooting & FAQs -->
+            <details class="doc-accordion">
+                <summary class="doc-accordion-header">
+                    <h2>🔧 Troubleshooting & Common Questions</h2>
+                </summary>
+                <div class="doc-accordion-content">
+
+                    <!-- Search Box -->
+                    <div class="faq-search-container">
+                        <input type="text" id="faqSearch" class="faq-search-input" placeholder="Search troubleshooting items...">
+                    </div>
+
+                    <!-- Quick Links Index -->
+                    <div class="faq-index">
+                        <h3>Common Issues</h3>
+                        <ul>
+                            <li><a href="#faq-csv-format">CSV format errors</a></li>
+                            <li><a href="#faq-date-format">Invalid date format</a></li>
+                            <li><a href="#faq-missing-hours">Hours not showing in MSD</a></li>
+                            <li><a href="#faq-validation">Validation errors</a></li>
+                            <li><a href="#faq-export-disabled">Export button disabled</a></li>
+                            <li><a href="#faq-project-codes">Project codes not recognized</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- FAQ Category: CSV Export Issues -->
+                    <div class="faq-category">
+                        <h3>CSV Export Issues</h3>
+
+                        <div class="faq-item" id="faq-csv-format" data-keywords="csv format delimiter comma excel">
+                            <div class="faq-question">
+                                <span class="faq-badge error">Error</span>
+                                Why is my CSV rejected with "Invalid delimiter" error?
+                            </div>
+                            <div class="faq-answer">
+                                <p><strong>Cause:</strong> The CSV file may have been opened and saved in Excel, which can change the delimiter format or encoding.</p>
+                                <p><strong>Fix:</strong> Re-export the CSV directly from this timesheet tool without opening it in Excel first.</p>
+                                <p><strong>Prevention:</strong> If you must view the CSV, use a text editor (Notepad, VS Code) or import directly into MSD without modifications.</p>
+                            </div>
+                        </div>
+
+                        <div class="faq-item" id="faq-empty-csv" data-keywords="csv empty no data blank">
+                            <div class="faq-question">
+                                <span class="faq-badge error">Error</span>
+                                CSV file is empty or has no data
+                            </div>
+                            <div class="faq-answer">
+                                <p><strong>Cause:</strong> No hours were entered for any day, or all rows have zero hours.</p>
+                                <p><strong>Fix:</strong> Enter hours for at least one day on at least one row before exporting.</p>
+                                <p><strong>Prevention:</strong> Check the "Daily Totals" row before exporting to ensure you have hours entered.</p>
+                            </div>
+                        </div>
+
+                        <div class="faq-item" id="faq-special-chars" data-keywords="special characters garbled encoding utf8">
+                            <div class="faq-question">
+                                <span class="faq-badge warning">Warning</span>
+                                Special characters appear garbled in CSV
+                            </div>
+                            <div class="faq-answer">
+                                <p><strong>Cause:</strong> MSD may not support special characters in project names or descriptions, or there's an encoding mismatch.</p>
+                                <p><strong>Fix:</strong> Avoid using special characters (é, ñ, etc.) in descriptions. Use plain ASCII characters only.</p>
+                                <p><strong>Prevention:</strong> Stick to standard alphanumeric characters and basic punctuation in all text fields.</p>
+                            </div>
+                        </div>
+
+                        <div class="faq-item" id="faq-export-disabled" data-keywords="export button disabled grayed greyed out">
+                            <div class="faq-question">
+                                <span class="faq-badge error">Error</span>
+                                Export button is disabled/grayed out
+                            </div>
+                            <div class="faq-answer">
+                                <p><strong>Cause:</strong> There are validation errors that must be fixed before exporting.</p>
+                                <p><strong>Fix:</strong> Check the "Validation Issues" panel (if visible) and resolve all errors marked in red.</p>
+                                <p><strong>Prevention:</strong> Regularly check validation status as you enter data. Common issues include missing descriptions for Resource Pool projects.</p>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- FAQ Category: MSD Import Issues -->
+                    <div class="faq-category">
+                        <h3>MSD Import Issues</h3>
+
+                        <div class="faq-item" id="faq-import-wizard" data-keywords="import wizard csv format recognize">
+                            <div class="faq-question">
+                                <span class="faq-badge error">Error</span>
+                                Import wizard doesn't recognize CSV format
+                            </div>
+                            <div class="faq-answer">
+                                <p><strong>Cause:</strong> File extension may be wrong, or CSV format doesn't match MSD expectations.</p>
+                                <p><strong>Fix:</strong> Ensure file has <code>.csv</code> extension. Try re-exporting from this tool.</p>
+                                <p><strong>Prevention:</strong> Always use the "Export CSV" button in this tool - never manually create or modify the CSV file.</p>
+                            </div>
+                        </div>
+
+                        <div class="faq-item" id="faq-missing-hours" data-keywords="hours zero blank missing not showing imported">
+                            <div class="faq-question">
+                                <span class="faq-badge error">Error</span>
+                                Hours are imported as zero/blank in MSD
+                            </div>
+                            <div class="faq-answer">
+                                <p><strong>Cause:</strong> Duration column may not be mapped correctly, or MSD expects a different time format.</p>
+                                <p><strong>Fix:</strong> Check column mapping in import wizard. Ensure "Duration" field is mapped correctly (should be in minutes).</p>
+                                <p><strong>Prevention:</strong> This tool exports hours in minutes (e.g., 7.5 hrs = 450 minutes) which is the MSD standard format.</p>
+                            </div>
+                        </div>
+
+                        <div class="faq-item" id="faq-project-codes" data-keywords="project codes not found invalid missing">
+                            <div class="faq-question">
+                                <span class="faq-badge error">Error</span>
+                                Project codes not found in MSD
+                            </div>
+                            <div class="faq-answer">
+                                <p><strong>Cause:</strong> Project name doesn't exactly match what's in Microsoft Dynamics, or project is inactive.</p>
+                                <p><strong>Fix:</strong> Verify project names match exactly (including spaces, capitalization). Check that projects are active in MSD.</p>
+                                <p><strong>Prevention:</strong> Copy/paste project names from MSD when possible. Use Templates feature to save correct project names.</p>
+                            </div>
+                        </div>
+
+                        <div class="faq-item" id="faq-cbs-rejected" data-keywords="cbs rejected invalid cost breakdown structure">
+                            <div class="faq-question">
+                                <span class="faq-badge error">Error</span>
+                                CBS values rejected during import
+                            </div>
+                            <div class="faq-answer">
+                                <p><strong>Cause:</strong> CBS (Cost Breakdown Structure) codes don't match your organization's MSD configuration.</p>
+                                <p><strong>Fix:</strong> Update CBS dropdown values in this tool to match your company's approved CBS codes. Contact your project admin for the correct list.</p>
+                                <p><strong>Prevention:</strong> Some projects (like Paid Time Off) allow blank CBS. Check with your PM team for which CBS codes to use.</p>
+                            </div>
+                        </div>
+
+                        <div class="faq-item" id="faq-work-location" data-keywords="work location invalid codes">
+                            <div class="faq-question">
+                                <span class="faq-badge warning">Warning</span>
+                                Work location codes invalid
+                            </div>
+                            <div class="faq-answer">
+                                <p><strong>Cause:</strong> Work location code doesn't match approved locations in MSD.</p>
+                                <p><strong>Fix:</strong> Verify the work location dropdown has the correct code for your office/location.</p>
+                                <p><strong>Prevention:</strong> This is typically a company-wide code that rarely changes. Contact IT or HR if you need the correct code.</p>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- FAQ Category: Data Validation Issues -->
+                    <div class="faq-category">
+                        <h3>Data Validation Issues</h3>
+
+                        <div class="faq-item" id="faq-validation" data-keywords="description required resource pool validation error">
+                            <div class="faq-question">
+                                <span class="faq-badge error">Error</span>
+                                "Description required when Project contains 'RESOURCE POOL'" error
+                            </div>
+                            <div class="faq-answer">
+                                <p><strong>Cause:</strong> Resource pool projects require a description to categorize the activity.</p>
+                                <p><strong>Fix:</strong> Add a description (e.g., "Maritime TL - Team meeting", "BD - Client proposal") to any row with "RESOURCE POOL" in the project name.</p>
+                                <p><strong>Prevention:</strong> Use Templates feature to save common resource pool descriptions for quick reuse.</p>
+                            </div>
+                        </div>
+
+                        <div class="faq-item" id="faq-totals-mismatch" data-keywords="weekly total daily mismatch calculation">
+                            <div class="faq-question">
+                                <span class="faq-badge info">Info</span>
+                                Weekly total doesn't match daily totals
+                            </div>
+                            <div class="faq-answer">
+                                <p><strong>Cause:</strong> This should not happen - it indicates a calculation error.</p>
+                                <p><strong>Fix:</strong> Try refreshing the page. If the issue persists, export your data as backup (JSON) and re-import.</p>
+                                <p><strong>Prevention:</strong> This tool automatically calculates totals. If you see this error, please report it.</p>
+                            </div>
+                        </div>
+
+                        <div class="faq-item" id="faq-category-wrong" data-keywords="category classification incorrect bd o t p">
+                            <div class="faq-question">
+                                <span class="faq-badge info">Info</span>
+                                Category classification is incorrect
+                            </div>
+                            <div class="faq-answer">
+                                <p><strong>Cause:</strong> Category is auto-determined by project name keywords. Some projects may not match expected patterns.</p>
+                                <p><strong>Fix:</strong> Category is for display only and doesn't affect CSV export. The correct data is still exported to MSD.</p>
+                                <p><strong>Prevention:</strong> Categories: BD (Business Development), O (Overheads/Resource Pool), T (Time Off), P (Productive work).</p>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- FAQ Category: General Questions -->
+                    <div class="faq-category">
+                        <h3>General Questions</h3>
+
+                        <div class="faq-item" id="faq-multiple-weeks" data-keywords="import multiple weeks batch">
+                            <div class="faq-question">
+                                <span class="faq-badge info">Info</span>
+                                How do I import multiple weeks at once?
+                            </div>
+                            <div class="faq-answer">
+                                <p><strong>Answer:</strong> Export each week separately and import them one at a time into MSD. Each CSV file represents one week.</p>
+                                <p>You can use the week navigation buttons to move between weeks and export each one individually.</p>
+                            </div>
+                        </div>
+
+                        <div class="faq-item" id="faq-edit-after-import" data-keywords="edit data after import modify change">
+                            <div class="faq-question">
+                                <span class="faq-badge info">Info</span>
+                                Can I edit data after importing to MSD?
+                            </div>
+                            <div class="faq-answer">
+                                <p><strong>Answer:</strong> Yes, you can edit hours in Microsoft Dynamics after import. However, changes made in MSD won't sync back to this tool.</p>
+                                <p>It's recommended to make corrections in this tool and re-export if possible, to keep your local backup consistent.</p>
+                            </div>
+                        </div>
+
+                        <div class="faq-item" id="faq-date-format" data-keywords="date format dd/mm/yyyy MM/DD/YYYY">
+                            <div class="faq-question">
+                                <span class="faq-badge info">Info</span>
+                                What date format does MSD expect?
+                            </div>
+                            <div class="faq-answer">
+                                <p><strong>Answer:</strong> This tool exports dates in DD/MM/YYYY format (e.g., 25/12/2025), which is the standard format for most MSD configurations.</p>
+                                <p>If your MSD instance uses a different format, contact your system administrator to confirm the required format.</p>
+                            </div>
+                        </div>
+
+                        <div class="faq-item" id="faq-public-holidays" data-keywords="public holidays time off leave">
+                            <div class="faq-question">
+                                <span class="faq-badge info">Info</span>
+                                How do I handle public holidays in my timesheet?
+                            </div>
+                            <div class="faq-answer">
+                                <p><strong>Answer:</strong> Use the "Public Holiday" template (Templates → Public Holiday) which pre-fills the correct project and type.</p>
+                                <p>Typically: Project = "Public Holiday (1047)", Type = "Paid Time Off", with 7.5 hours (or your standard day length).</p>
+                            </div>
+                        </div>
+
+                        <div class="faq-item" id="faq-type-difference" data-keywords="work paid time off type difference agile accrual">
+                            <div class="faq-question">
+                                <span class="faq-badge info">Info</span>
+                                What's the difference between "Work", "Paid Time Off", and "Agile Accrual" types?
+                            </div>
+                            <div class="faq-answer">
+                                <p><strong>Work:</strong> Standard project hours, billable or non-billable work activities.</p>
+                                <p><strong>Paid Time Off:</strong> Annual leave, sick leave, public holidays - time off that's paid.</p>
+                                <p><strong>Agile Accrual:</strong> Flex time or agile hours that accrue for later use (check with your company policy).</p>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+            </details>
+
+            <!-- Additional Questions & Feedback -->
+            <details class="doc-accordion">
+                <summary class="doc-accordion-header">
+                    <h2>✉️ Additional Questions & Feedback</h2>
+                </summary>
+                <div class="doc-accordion-content">
+                    <p>
+                        For bugs, feature requests, or general feedback about the KBR Timesheet Helper,
+                        please contact <strong>Chris Leaman</strong> (National Maritime Team Lead) at
+                        <a href="mailto:chris.leaman@kbr.com">chris.leaman@kbr.com</a>.
+                    </p>
+                    <p>
+                        We welcome your input to help improve this tool!
+                    </p>
+                </div>
+            </details>
+
+        </div>
+    </div>
+
+    <!-- Template Modal -->
+    <div class="modal" id="templateModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Row Templates</h2>
+                <button class="close-btn" onclick="app.closeTemplateModal()">&times;</button>
+            </div>
+            <div>
+                <ul class="template-list" id="templateList"></ul>
+                <button class="btn" onclick="app.showSaveTemplate()">+ Save Current Row as Template</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Save Template Modal -->
+    <div class="modal" id="saveTemplateModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Save Template</h2>
+                <button class="close-btn" onclick="app.closeSaveTemplateModal()">&times;</button>
+            </div>
+            <div>
+                <label for="templateName">Template Name:</label>
+                <input type="text" id="templateName" class="modal-input" placeholder="e.g., Maritime TL">
+                <label for="templateRow">Select Row to Save:</label>
+                <select id="templateRow" class="modal-input"></select>
+                <button class="btn" onclick="app.saveTemplate()">Save Template</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Template Modal -->
+    <div class="modal" id="editTemplateModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Template</h2>
+                <button class="close-btn" onclick="app.closeEditTemplateModal()">&times;</button>
+            </div>
+            <div>
+                <label for="editTemplateName">Template Name:</label>
+                <input type="text" id="editTemplateName" class="modal-input" placeholder="Template name">
+
+                <label for="editTemplateProject">Project:</label>
+                <input type="text" id="editTemplateProject" class="modal-input" placeholder="Project">
+
+                <label for="editTemplateProjectTask">Project Task:</label>
+                <input type="text" id="editTemplateProjectTask" class="modal-input" placeholder="Project Task">
+
+                <label for="editTemplateCostType">Cost Type:</label>
+                <select id="editTemplateCostType" class="modal-input"></select>
+
+                <label for="editTemplateCbs">CBS:</label>
+                <select id="editTemplateCbs" class="modal-input"></select>
+
+                <label for="editTemplateRole">Role:</label>
+                <select id="editTemplateRole" class="modal-input"></select>
+
+                <label for="editTemplateType">Type:</label>
+                <select id="editTemplateType" class="modal-input"></select>
+
+                <label for="editTemplateDescription">Description:</label>
+                <input type="text" id="editTemplateDescription" class="modal-input" placeholder="Description">
+
+                <input type="hidden" id="editTemplateId">
+
+                <div style="margin-top: 15px;">
+                    <button class="btn" onclick="app.saveEditedTemplate()">Save Changes</button>
+                    <button class="btn btn-secondary" onclick="app.closeEditTemplateModal()">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Copy from Other Week Modal -->
+    <div class="modal" id="copyFromWeekModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Copy Rows from Other Week</h2>
+                <button class="close-btn" onclick="app.closeCopyFromWeekModal()">&times;</button>
+            </div>
+            <div>
+                <label for="weekSelector">Select Week:</label>
+                <select id="weekSelector" class="modal-input" onchange="app.loadWeekRows()"></select>
+
+                <div id="weekRowsContainer" class="hidden">
+                    <div style="margin: 15px 0 0 0; padding: 0;">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="includeHours">
+                            <span>Include hours when copying</span>
+                        </label>
+                    </div>
+                    <div style="margin: 0 0 15px 0; padding: 0;">
+                        <button class="btn btn-secondary" onclick="app.toggleSelectAllWeekRows()">Select All</button>
+                    </div>
+
+                    <div class="week-rows-list" id="weekRowsList"></div>
+
+                    <button class="btn" onclick="app.copySelectedRows()">Copy Selected Rows</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Expected Hours Modal -->
+    <div class="modal" id="expectedHoursModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Expected Hours Settings</h2>
+                <button class="close-btn" onclick="app.closeExpectedHoursModal()">&times;</button>
+            </div>
+            <div>
+                <label for="expectedHoursInput">Expected hours per week:</label>
+                <input type="number" id="expectedHoursInput" class="modal-input" min="0" step="0.5"
+                       placeholder="e.g., 38, 40, 37.5">
+                <div style="margin-top: 15px;">
+                    <button class="btn" onclick="app.saveExpectedHours()">Save</button>
+                    <button class="btn btn-secondary" onclick="app.closeExpectedHoursModal()">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== CONFIGURATION ====================
+        const CONFIG = {
+            dropdownOptions: {
+                role: ["Team Member"],
+                type: ["Work", "Paid Time Off", "Agile Accrual"],
+                costType: [
+                    "L0700-Structural"
+                ],
+                cbs: [
+                    "A030700-Design Documents & Drawings",
+                    "A020200-Project Management"
+                ],
+                workLocation: ["036001000000"]
+            },
+
+            csvDefaults: {
+                timeSource: "Project Service",
+                entryStatus: "Draft"
+            },
+
+            validationRules: [
+                {
+                    id: "resourcePoolDescription",
+                    level: "error",
+                    message: "Description required when Project contains 'RESOURCE POOL'",
+                    test: (row) => {
+                        if (row.project?.toUpperCase().includes("RESOURCE POOL")) {
+                            return row.description?.trim().length > 0;
+                        }
+                        return true;
+                    }
+                },
+                {
+                    id: "agileAccrualRequires8Hours",
+                    level: "warning",
+                    message: "", // Generated dynamically per day
+                    violationDay: null,
+                    violationWorkHours: null,
+                    test: function(row, weekData) {
+                        // Skip if not Agile Accrual type
+                        if (row.type !== "Agile Accrual") {
+                            return true;
+                        }
+
+                        // If weekData not provided (old validation calls), pass validation
+                        if (!weekData || !weekData.rows) {
+                            return true;
+                        }
+
+                        const days = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+                        const dayNames = {
+                            mon: 'Monday',
+                            tue: 'Tuesday',
+                            wed: 'Wednesday',
+                            thu: 'Thursday',
+                            fri: 'Friday',
+                            sat: 'Saturday',
+                            sun: 'Sunday'
+                        };
+
+                        // Check each day that has Agile Accrual hours
+                        for (const day of days) {
+                            const agileHours = row.hours[day] || 0;
+
+                            if (agileHours > 0) {
+                                // Calculate total Work hours for this day across all rows
+                                const workHours = weekData.rows
+                                    .filter(r => r.type === "Work")
+                                    .reduce((sum, r) => sum + (r.hours[day] || 0), 0);
+
+                                if (workHours < 8) {
+                                    // Store violation details for message generation
+                                    this.violationDay = dayNames[day];
+                                    this.violationWorkHours = workHours;
+                                    return false;
+                                }
+                            }
+                        }
+
+                        return true;
+                    }
+                }
+            ],
+
+            shortcuts: {
+                addRow: "Ctrl+Enter",
+                deleteRow: "Ctrl+Delete",
+                duplicateRow: "Ctrl+D"
+            },
+
+            predefinedTemplates: [
+                {
+                    id: "predefined-qld-overheads",
+                    name: "QLD Overheads",
+                    predefined: true,
+                    fields: {
+                        project: "QLD RESOURCE POOL",
+                        projectTask: "00001.0001 General",
+                        costType: "L0700-Structural",
+                        cbs: "A030700-Design Documents & Drawings",
+                        role: "Team Member",
+                        type: "Work",
+                        description: "QLD Overheads",
+                        workLocation: ""
+                    }
+                },
+                {
+                    id: "predefined-annual-leave",
+                    name: "Annual Leave",
+                    predefined: true,
+                    fields: {
+                        project: "Paid Time Off (1047)",
+                        projectTask: "Annual Leave (1047)",
+                        costType: "L0700-Structural",
+                        cbs: "",
+                        role: "Team Member",
+                        type: "Paid Time Off",
+                        description: "Annual Leave",
+                        workLocation: ""
+                    }
+                },
+                {
+                    id: "predefined-public-holiday",
+                    name: "Public Holiday",
+                    predefined: true,
+                    fields: {
+                        project: "Public Holiday (1047)",
+                        projectTask: "Public Holiday (1047)",
+                        costType: "L0700-Structural",
+                        cbs: "",
+                        role: "Team Member",
+                        type: "Paid Time Off",
+                        description: "Public Holiday",
+                        workLocation: ""
+                    }
+                },
+                {
+                    id: "predefined-flex-time-off",
+                    name: "Flex Time Off",
+                    predefined: true,
+                    fields: {
+                        project: "Paid Time Off",
+                        projectTask: "Agile Time Off (1047)",
+                        costType: "L0700-Structural",
+                        cbs: "",
+                        role: "Team Member",
+                        type: "Paid Time Off",
+                        description: "Flex Time Off",
+                        workLocation: ""
+                    }
+                }
+            ]
+        };
+
+        // ==================== DATA MODEL & STATE ====================
+        const app = {
+            data: {
+                version: 1,
+                preferences: {
+                    lastWeekStart: null,
+                    timeIncrement: 0.5,
+                    expectedWeeklyHours: 38
+                },
+                dropdownOptions: CONFIG.dropdownOptions,
+                templates: [],
+                weeks: {}
+            },
+            currentWeekStart: null,
+            selectedCell: null,
+            saveTimeout: null,
+
+            // ==================== INITIALIZATION ====================
+            init() {
+                this.loadData();
+
+                // Set default expected hours if not set
+                if (this.data.preferences.expectedWeeklyHours === undefined) {
+                    this.data.preferences.expectedWeeklyHours = 38;
+                }
+
+                this.currentWeekStart = this.data.preferences.lastWeekStart || this.getCurrentWeekStart();
+                this.ensureWeekExists(this.currentWeekStart);
+                this.render();
+                this.setupEventListeners();
+
+                // Initialize expected hours display
+                document.getElementById('expectedHoursValue').textContent =
+                    this.data.preferences.expectedWeeklyHours;
+            },
+
+            getCurrentWeekStart() {
+                const today = new Date();
+                const day = today.getDay();
+                const diff = (day === 0 ? -6 : 1) - day; // Adjust when day is Sunday
+                const monday = new Date(today);
+                monday.setDate(today.getDate() + diff);
+                return this.formatDate(monday);
+            },
+
+            formatDate(date) {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            },
+
+            parseDate(dateStr) {
+                const [year, month, day] = dateStr.split('-').map(Number);
+                return new Date(year, month - 1, day);
+            },
+
+            formatDisplayDate(dateStr) {
+                const date = this.parseDate(dateStr);
+                const options = { month: 'short', day: 'numeric', year: 'numeric' };
+                return date.toLocaleDateString('en-US', options);
+            },
+
+            // ==================== CATEGORY CLASSIFICATION ====================
+            getCategory(projectName) {
+                if (!projectName) return 'P'; // Default to Productive if empty
+
+                const project = projectName.trim();
+
+                // Business Development: ends with "BP"
+                if (/BP$/i.test(project)) return 'BD';
+
+                // Overheads: contains "RESOURCE POOL"
+                if (/RESOURCE\s+POOL/i.test(project)) return 'O';
+
+                // Time Off: contains "TIME OFF"
+                if (/TIME\s+OFF/i.test(project)) return 'T';
+
+                // Productive: everything else
+                return 'P';
+            },
+
+            getCategoryAbbrev(category) {
+                return category; // Already abbreviated
+            },
+
+            getCategoryFull(category) {
+                const names = {
+                    'BD': 'Business Development',
+                    'O': 'Overheads',
+                    'T': 'Time Off',
+                    'P': 'Productive'
+                };
+                return names[category] || 'Productive';
+            },
+
+            getWeekDates(weekStart) {
+                const start = this.parseDate(weekStart);
+                const dates = [];
+                for (let i = 0; i < 7; i++) {
+                    const date = new Date(start);
+                    date.setDate(start.getDate() + i);
+                    dates.push(date);
+                }
+                return dates;
+            },
+
+            ensureWeekExists(weekStart) {
+                if (!this.data.weeks[weekStart]) {
+                    this.data.weeks[weekStart] = {
+                        weekStart: weekStart,
+                        rows: [this.createEmptyRow()]
+                    };
+                }
+            },
+
+            createEmptyRow() {
+                return {
+                    id: 'row-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9),
+                    project: '',
+                    projectTask: '',
+                    costType: '',
+                    cbs: '',
+                    role: '',
+                    type: '',
+                    workLocation: '',
+                    description: '',
+                    hours: {
+                        mon: 0,
+                        tue: 0,
+                        wed: 0,
+                        thu: 0,
+                        fri: 0,
+                        sat: 0,
+                        sun: 0
+                    }
+                };
+            },
+
+            // ==================== DATA PERSISTENCE ====================
+            loadData() {
+                try {
+                    const stored = localStorage.getItem('kbrTimesheet');
+                    if (stored) {
+                        this.data = JSON.parse(stored);
+                    }
+                    // Always sync dropdownOptions from CONFIG to ensure new values are available
+                    this.data.dropdownOptions = CONFIG.dropdownOptions;
+                } catch (error) {
+                    console.error('Error loading data:', error);
+                    alert('Error loading saved data. Starting fresh.');
+                }
+            },
+
+            saveData() {
+                try {
+                    localStorage.setItem('kbrTimesheet', JSON.stringify(this.data));
+                } catch (error) {
+                    console.error('Error saving data:', error);
+                    alert('Error saving data. localStorage may be full. Please export your data as backup.');
+                }
+            },
+
+            debouncedSave() {
+                clearTimeout(this.saveTimeout);
+                this.saveTimeout = setTimeout(() => this.saveData(), 500);
+            },
+
+            // ==================== UI RENDERING ====================
+            render() {
+                this.renderWeekDisplay();
+                this.renderTable();
+                this.updateTotals();
+                this.validateAndDisplay();
+            },
+
+            renderWeekDisplay() {
+                const weekDates = this.getWeekDates(this.currentWeekStart);
+                const startStr = this.formatDisplayDate(this.currentWeekStart);
+                const endDate = weekDates[6];
+                const endStr = this.formatDisplayDate(this.formatDate(endDate));
+                document.getElementById('weekDisplay').textContent = `Week of ${startStr} - ${endStr}`;
+            },
+
+            renderTable() {
+                const tbody = document.getElementById('timesheetBody');
+                tbody.innerHTML = '';
+
+                const currentWeek = this.data.weeks[this.currentWeekStart];
+                if (!currentWeek || !currentWeek.rows) return;
+
+                currentWeek.rows.forEach((row, index) => {
+                    const tr = document.createElement('tr');
+                    tr.dataset.rowId = row.id;
+                    tr.dataset.rowIndex = index;
+
+                    tr.innerHTML = `
+                        <td class="action-cell">
+                            ${this.currentWeekStart !== this.getCurrentWeekStart()
+                                ? `<button class="copy-to-current-btn"
+                                           onclick="app.copyRowToCurrentWeek('${row.id}')"
+                                           title="Copy to Current Week">➜</button>`
+                                : ''}
+                            <button class="duplicate-btn" onclick="app.duplicateRow('${row.id}')" title="Duplicate row">⧉</button>
+                            <button class="delete-btn" onclick="app.deleteRow('${row.id}')" title="Delete row">✖</button>
+                        </td>
+                        <td><input type="text" value="${row.project}" data-field="project" data-row="${row.id}"></td>
+                        <td><input type="text" value="${row.projectTask}" data-field="projectTask" data-row="${row.id}"></td>
+                        <td>${this.renderSelect('costType', row.costType, row.id)}</td>
+                        <td>${this.renderSelect('cbs', row.cbs, row.id)}</td>
+                        <td>${this.renderSelect('role', row.role, row.id)}</td>
+                        <td>${this.renderSelect('type', row.type, row.id)}</td>
+                        <td>${this.renderSelect('workLocation', row.workLocation, row.id)}</td>
+                        <td><input type="text" value="${row.description}" data-field="description" data-row="${row.id}"></td>
+                        <td class="category-cell" data-row="${row.id}" title="${this.getCategoryFull(this.getCategory(row.project))}">${this.getCategory(row.project)}</td>
+                        <td><input type="number" class="hours-input" step="0.5" min="0" value="${row.hours.mon}" data-field="hours.mon" data-row="${row.id}"></td>
+                        <td><input type="number" class="hours-input" step="0.5" min="0" value="${row.hours.tue}" data-field="hours.tue" data-row="${row.id}"></td>
+                        <td><input type="number" class="hours-input" step="0.5" min="0" value="${row.hours.wed}" data-field="hours.wed" data-row="${row.id}"></td>
+                        <td><input type="number" class="hours-input" step="0.5" min="0" value="${row.hours.thu}" data-field="hours.thu" data-row="${row.id}"></td>
+                        <td><input type="number" class="hours-input" step="0.5" min="0" value="${row.hours.fri}" data-field="hours.fri" data-row="${row.id}"></td>
+                        <td><input type="number" class="hours-input" step="0.5" min="0" value="${row.hours.sat}" data-field="hours.sat" data-row="${row.id}"></td>
+                        <td><input type="number" class="hours-input" step="0.5" min="0" value="${row.hours.sun}" data-field="hours.sun" data-row="${row.id}"></td>
+                        <td class="row-total">${this.getRowTotal(row)}</td>
+                    `;
+
+                    tbody.appendChild(tr);
+                });
+            },
+
+            renderSelect(field, value, rowId) {
+                const options = this.data.dropdownOptions[field] || [];
+                let html = `<select data-field="${field}" data-row="${rowId}">`;
+                html += '<option value=""></option>';
+                options.forEach(opt => {
+                    html += `<option value="${opt}" ${opt === value ? 'selected' : ''}>${opt}</option>`;
+                });
+                html += '</select>';
+                return html;
+            },
+
+            getRowTotal(row) {
+                return Object.values(row.hours).reduce((sum, h) => sum + parseFloat(h || 0), 0).toFixed(1);
+            },
+
+            hasWeekData(weekStart) {
+                const week = this.data?.weeks?.[weekStart];
+                const rows = week?.rows;
+                if (!Array.isArray(rows) || rows.length === 0) return false;
+
+                // Short-circuit check: return true if ANY row has ANY hour cell > 0
+                return rows.some(row => {
+                    const hoursObj = row?.hours;
+                    if (!hoursObj || typeof hoursObj !== "object") return false;
+
+                    // Check if any hour value is > 0
+                    return Object.values(hoursObj).some(h => {
+                        const n = Number(h);
+                        return Number.isFinite(n) && n > 0;
+                    });
+                });
+            },
+
+            updateTotals() {
+                const currentWeek = this.data.weeks[this.currentWeekStart];
+                if (!currentWeek) return;
+
+                const days = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+                const totals = { mon: 0, tue: 0, wed: 0, thu: 0, fri: 0, sat: 0, sun: 0 };
+
+                currentWeek.rows.forEach(row => {
+                    days.forEach(day => {
+                        totals[day] += parseFloat(row.hours[day] || 0);
+                    });
+                });
+
+                days.forEach(day => {
+                    const capitalDay = day.charAt(0).toUpperCase() + day.slice(1);
+                    document.getElementById('total' + capitalDay).textContent = totals[day].toFixed(1);
+                });
+
+                const grandTotal = Object.values(totals).reduce((sum, t) => sum + t, 0);
+                document.getElementById('totalAll').textContent = grandTotal.toFixed(1);
+
+                // Update category summary
+                this.updateCategorySummary();
+            },
+
+            updateCategoryCellForRow(rowId, projectValue, inputEl) {
+                const category = this.getCategory(projectValue);
+                const full = this.getCategoryFull(category);
+
+                // Prefer DOM locality: safest + fastest (works even if there are duplicate IDs elsewhere)
+                const tr = inputEl?.closest?.('tr') || document.querySelector(`tr[data-row-id="${rowId}"]`);
+                if (!tr) return;
+
+                const td = tr.querySelector('.category-cell');
+                if (!td) return;
+
+                // Avoid touching the input; only patch the dependent cell
+                td.textContent = category;
+                td.title = full;
+            },
+
+            // ==================== CATEGORY SUMMARY ====================
+            calculateCategorySummary() {
+                const week = this.data.weeks[this.currentWeekStart];
+                if (!week) return { BD: 0, O: 0, T: 0, P: 0 };
+
+                const summary = { BD: 0, O: 0, T: 0, P: 0 };
+                const days = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+
+                week.rows.forEach(row => {
+                    const category = this.getCategory(row.project);
+                    const rowTotal = days.reduce((sum, day) => sum + (row.hours[day] || 0), 0);
+                    summary[category] += rowTotal;
+                });
+
+                return summary;
+            },
+
+            updateCategorySummary() {
+                const summary = this.calculateCategorySummary();
+                const expectedHours = this.data.preferences.expectedWeeklyHours || 38;
+
+                // Update Business Development
+                document.getElementById('bdHours').textContent = `${summary.BD.toFixed(1)} hrs`;
+                document.getElementById('bdPercent').textContent =
+                    `${((summary.BD / expectedHours) * 100).toFixed(1)}%`;
+
+                // Update Overheads
+                document.getElementById('oHours').textContent = `${summary.O.toFixed(1)} hrs`;
+                document.getElementById('oPercent').textContent =
+                    `${((summary.O / expectedHours) * 100).toFixed(1)}%`;
+
+                // Update Time Off
+                document.getElementById('tHours').textContent = `${summary.T.toFixed(1)} hrs`;
+                document.getElementById('tPercent').textContent =
+                    `${((summary.T / expectedHours) * 100).toFixed(1)}%`;
+
+                // Update Productive
+                document.getElementById('pHours').textContent = `${summary.P.toFixed(1)} hrs`;
+                document.getElementById('pPercent').textContent =
+                    `${((summary.P / expectedHours) * 100).toFixed(1)}%`;
+            },
+
+            // ==================== EVENT HANDLERS ====================
+            setupEventListeners() {
+                // Input change events
+                document.getElementById('timesheetBody').addEventListener('input', (e) => {
+                    if (e.target.matches('input, select')) {
+                        this.handleInputChange(e.target);
+                    }
+                });
+
+                // Keyboard navigation
+                document.getElementById('timesheetBody').addEventListener('keydown', (e) => {
+                    this.handleKeyNavigation(e);
+                });
+
+                // Copy/paste
+                document.getElementById('timesheetBody').addEventListener('paste', (e) => {
+                    this.handlePaste(e);
+                });
+
+                // Global keyboard shortcuts
+                document.addEventListener('keydown', (e) => {
+                    this.handleGlobalShortcuts(e);
+                });
+            },
+
+            handleInputChange(input) {
+                const rowId = input.dataset.row;
+                const field = input.dataset.field;
+                const value = input.value;
+
+                const currentWeek = this.data.weeks[this.currentWeekStart];
+                const row = currentWeek.rows.find(r => r.id === rowId);
+
+                if (row) {
+                    if (field.startsWith('hours.')) {
+                        const day = field.split('.')[1];
+                        row.hours[day] = parseFloat(value) || 0;
+                    } else {
+                        row[field] = value;
+                    }
+
+                    // Update category cell if project field changes (without losing focus)
+                    if (field === 'project') {
+                        this.updateCategoryCellForRow(rowId, value, input);
+                    }
+
+                    this.updateTotals();
+                    this.validateAndDisplay();
+                    this.debouncedSave();
+                }
+            },
+
+            handleKeyNavigation(e) {
+                const input = e.target;
+                if (!input.matches('input, select')) return;
+
+                let handled = false;
+
+                // Arrow key navigation
+                if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                    const td = input.closest('td');
+                    const tr = td.closest('tr');
+                    const cellIndex = Array.from(tr.cells).indexOf(td);
+
+                    let newTr = tr;
+                    let newCellIndex = cellIndex;
+
+                    if (e.key === 'ArrowUp') {
+                        newTr = tr.previousElementSibling;
+                    } else if (e.key === 'ArrowDown') {
+                        newTr = tr.nextElementSibling;
+                    } else if (e.key === 'ArrowLeft' && input.selectionStart === 0) {
+                        newCellIndex = cellIndex - 1;
+                    } else if (e.key === 'ArrowRight' && input.selectionStart === input.value.length) {
+                        newCellIndex = cellIndex + 1;
+                    }
+
+                    if (newTr && newTr !== tr && newTr.cells[cellIndex]) {
+                        const newInput = newTr.cells[cellIndex].querySelector('input, select');
+                        if (newInput) {
+                            newInput.focus();
+                            handled = true;
+                        }
+                    } else if (newCellIndex !== cellIndex && tr.cells[newCellIndex]) {
+                        const newInput = tr.cells[newCellIndex].querySelector('input, select');
+                        if (newInput) {
+                            newInput.focus();
+                            handled = true;
+                        }
+                    }
+                }
+
+                if (handled) {
+                    e.preventDefault();
+                }
+            },
+
+            handleGlobalShortcuts(e) {
+                // Ctrl+Enter: Add row
+                if (e.ctrlKey && e.key === 'Enter') {
+                    e.preventDefault();
+                    this.addRow();
+                }
+                // Ctrl+Delete: Delete current row
+                else if (e.ctrlKey && e.key === 'Delete') {
+                    e.preventDefault();
+                    const input = document.activeElement;
+                    if (input.matches('input, select')) {
+                        const rowId = input.dataset.row;
+                        if (rowId) this.deleteRow(rowId);
+                    }
+                }
+                // Ctrl+D: Duplicate current row
+                else if (e.ctrlKey && e.key === 'd') {
+                    e.preventDefault();
+                    const input = document.activeElement;
+                    if (input.matches('input, select')) {
+                        const rowId = input.dataset.row;
+                        if (rowId) this.duplicateRow(rowId);
+                    }
+                }
+            },
+
+            handlePaste(e) {
+                const input = e.target;
+                if (!input.matches('input')) return;
+
+                const clipboardData = e.clipboardData.getData('text');
+                if (!clipboardData.includes('\t') && !clipboardData.includes('\n')) return;
+
+                e.preventDefault();
+
+                const rows = clipboardData.split('\n').map(row => row.split('\t'));
+                const td = input.closest('td');
+                const tr = td.closest('tr');
+                const startCellIndex = Array.from(tr.cells).indexOf(td);
+                const startRowIndex = parseInt(tr.dataset.rowIndex);
+
+                const currentWeek = this.data.weeks[this.currentWeekStart];
+
+                rows.forEach((rowData, rowOffset) => {
+                    const targetRowIndex = startRowIndex + rowOffset;
+                    if (targetRowIndex >= currentWeek.rows.length) {
+                        this.addRow();
+                    }
+
+                    rowData.forEach((cellValue, cellOffset) => {
+                        const targetCellIndex = startCellIndex + cellOffset;
+                        const targetTr = document.querySelectorAll('#timesheetBody tr')[targetRowIndex];
+                        if (targetTr && targetTr.cells[targetCellIndex]) {
+                            const targetInput = targetTr.cells[targetCellIndex].querySelector('input, select');
+                            if (targetInput) {
+                                targetInput.value = cellValue.trim();
+                                this.handleInputChange(targetInput);
+                            }
+                        }
+                    });
+                });
+
+                this.render();
+            },
+
+            // ==================== ROW OPERATIONS ====================
+            addRow() {
+                const currentWeek = this.data.weeks[this.currentWeekStart];
+                currentWeek.rows.push(this.createEmptyRow());
+                this.render();
+                this.saveData();
+            },
+
+            deleteRow(rowId) {
+                const currentWeek = this.data.weeks[this.currentWeekStart];
+                currentWeek.rows = currentWeek.rows.filter(r => r.id !== rowId);
+                if (currentWeek.rows.length === 0) {
+                    currentWeek.rows.push(this.createEmptyRow());
+                }
+                this.render();
+                this.saveData();
+            },
+
+            duplicateRow(rowId) {
+                const currentWeek = this.data.weeks[this.currentWeekStart];
+                const row = currentWeek.rows.find(r => r.id === rowId);
+                if (row) {
+                    const newRow = JSON.parse(JSON.stringify(row));
+                    newRow.id = 'row-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+                    newRow.hours = { mon: 0, tue: 0, wed: 0, thu: 0, fri: 0, sat: 0, sun: 0 };
+                    const index = currentWeek.rows.findIndex(r => r.id === rowId);
+                    currentWeek.rows.splice(index + 1, 0, newRow);
+                    this.render();
+                    this.saveData();
+                }
+            },
+
+            copyRowToCurrentWeek(rowId) {
+                // Get real-world current week
+                const realCurrentWeekStart = this.getCurrentWeekStart();
+
+                // Find the source row
+                const sourceWeek = this.data.weeks[this.currentWeekStart];
+                const sourceRow = sourceWeek.rows.find(r => r.id === rowId);
+
+                if (!sourceRow) return;
+
+                // Ensure target week exists (auto-create if needed)
+                this.ensureWeekExists(realCurrentWeekStart);
+                const targetWeek = this.data.weeks[realCurrentWeekStart];
+
+                // Deep clone the row (use structuredClone if available, fallback to JSON)
+                const newRow = typeof structuredClone === 'function'
+                    ? structuredClone(sourceRow)
+                    : JSON.parse(JSON.stringify(sourceRow));
+
+                // Generate new unique ID
+                newRow.id = 'row-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+
+                // Clear hours (don't copy hours)
+                newRow.hours = { mon: 0, tue: 0, wed: 0, thu: 0, fri: 0, sat: 0, sun: 0 };
+
+                // Append to target week
+                targetWeek.rows.push(newRow);
+
+                // Save data (don't re-render since we're not viewing target week)
+                this.saveData();
+
+                // Show success notification with optional navigation
+                this.showCopySuccessToast(realCurrentWeekStart);
+            },
+
+            showCopySuccessToast(targetWeekStart) {
+                // Format the target week dates for display
+                const targetWeekDates = this.getWeekDates(targetWeekStart);
+                const targetStart = this.formatDisplayDate(targetWeekStart);
+                const targetEnd = this.formatDisplayDate(this.formatDate(targetWeekDates[6]));
+
+                // Create toast element
+                const toast = document.createElement('div');
+                toast.className = 'copy-toast';
+                toast.innerHTML = `
+                    <span>Row copied to current week (${targetStart} - ${targetEnd})</span>
+                    <button class="toast-view-btn" onclick="app.navigateToCurrentWeek(); app.dismissToast()">View</button>
+                    <button class="toast-dismiss-btn" onclick="app.dismissToast()">&times;</button>
+                `;
+
+                // Add to page
+                document.body.appendChild(toast);
+
+                // Auto-dismiss after 5 seconds
+                setTimeout(() => {
+                    if (toast.parentElement) {
+                        this.dismissToast();
+                    }
+                }, 5000);
+            },
+
+            dismissToast() {
+                const toast = document.querySelector('.copy-toast');
+                if (toast) {
+                    toast.classList.add('fade-out');
+                    setTimeout(() => toast.remove(), 300);
+                }
+            },
+
+            navigateToCurrentWeek() {
+                const currentWeekStart = this.getCurrentWeekStart();
+                this.currentWeekStart = currentWeekStart;
+                this.ensureWeekExists(this.currentWeekStart);
+                this.data.preferences.lastWeekStart = this.currentWeekStart;
+                this.render();
+                this.saveData();
+            },
+
+            // ==================== WEEK NAVIGATION ====================
+            previousWeek() {
+                const current = this.parseDate(this.currentWeekStart);
+                current.setDate(current.getDate() - 7);
+                this.currentWeekStart = this.formatDate(current);
+                this.ensureWeekExists(this.currentWeekStart);
+                this.data.preferences.lastWeekStart = this.currentWeekStart;
+                this.render();
+                this.saveData();
+            },
+
+            nextWeek() {
+                const current = this.parseDate(this.currentWeekStart);
+                current.setDate(current.getDate() + 7);
+                this.currentWeekStart = this.formatDate(current);
+                this.ensureWeekExists(this.currentWeekStart);
+                this.data.preferences.lastWeekStart = this.currentWeekStart;
+                this.render();
+                this.saveData();
+            },
+
+            openWeekPicker() {
+                const picker = document.getElementById('weekPicker');
+
+                // Set current week's Monday as default value
+                picker.value = this.currentWeekStart;
+
+                // Try to use showPicker() if available (Chromium)
+                if (picker.showPicker) {
+                    try {
+                        picker.showPicker();
+                    } catch (e) {
+                        // Fallback: just focus the input
+                        picker.focus();
+                    }
+                } else {
+                    // Fallback for browsers without showPicker()
+                    picker.focus();
+                }
+            },
+
+            jumpToWeek(dateString) {
+                if (!dateString) return;
+
+                // Parse the selected date
+                const selectedDate = new Date(dateString + 'T00:00:00');
+
+                // Calculate the Monday of the week containing this date
+                const dayOfWeek = selectedDate.getDay();
+                const diff = (dayOfWeek === 0 ? -6 : 1) - dayOfWeek; // Adjust when Sunday
+                const monday = new Date(selectedDate);
+                monday.setDate(selectedDate.getDate() + diff);
+
+                // Format as YYYY-MM-DD
+                const weekStart = this.formatDate(monday);
+
+                // Navigate to this week
+                this.currentWeekStart = weekStart;
+                this.ensureWeekExists(this.currentWeekStart);
+                this.data.preferences.lastWeekStart = this.currentWeekStart;
+                this.render();
+                this.saveData();
+            },
+
+            goToCurrentWeek() {
+                const currentWeekStart = this.getCurrentWeekStart();
+                this.currentWeekStart = currentWeekStart;
+                this.ensureWeekExists(this.currentWeekStart);
+                this.data.preferences.lastWeekStart = this.currentWeekStart;
+                this.render();
+                this.saveData();
+            },
+
+            // ==================== VALIDATION ====================
+            validateAndDisplay() {
+                const currentWeek = this.data.weeks[this.currentWeekStart];
+                const errors = [];
+                const warnings = [];
+
+                // Clear previous validation styling
+                document.querySelectorAll('.validation-error, .validation-warning').forEach(el => {
+                    el.classList.remove('validation-error', 'validation-warning');
+                });
+
+                currentWeek.rows.forEach((row, index) => {
+                    CONFIG.validationRules.forEach(rule => {
+                        // Pass currentWeek for cross-row validation (backward compatible)
+                        const testResult = rule.test.length > 1
+                            ? rule.test.call(rule, row, currentWeek)
+                            : rule.test(row);
+
+                        if (!testResult) {
+                            // Generate dynamic message for Agile Accrual rule
+                            let message = rule.message;
+                            if (rule.id === 'agileAccrualRequires8Hours' && rule.violationDay) {
+                                message = `Insufficient Work hours for Agile Accrual on ${rule.violationDay}: need 8, have ${rule.violationWorkHours}`;
+                            }
+
+                            const issue = { message: `Row ${index + 1}: ${message}`, rowId: row.id };
+                            if (rule.level === 'error') {
+                                errors.push(issue);
+                            } else {
+                                warnings.push(issue);
+                            }
+
+                            // Highlight the description field if it's the resource pool rule
+                            if (rule.id === 'resourcePoolDescription') {
+                                const input = document.querySelector(`input[data-field="description"][data-row="${row.id}"]`);
+                                if (input) {
+                                    input.classList.add('validation-error');
+                                }
+                            }
+                        }
+                    });
+                });
+
+                const panel = document.getElementById('validationPanel');
+                const list = document.getElementById('validationList');
+                list.innerHTML = '';
+
+                if (errors.length > 0 || warnings.length > 0) {
+                    [...errors, ...warnings].forEach(issue => {
+                        const li = document.createElement('li');
+                        li.textContent = issue.message;
+                        list.appendChild(li);
+                    });
+
+                    panel.className = 'validation-panel';
+                    if (errors.length > 0) {
+                        panel.classList.add('has-errors');
+                    } else {
+                        panel.classList.add('has-warnings');
+                    }
+                } else {
+                    panel.className = 'validation-panel';
+                }
+
+                return errors.length === 0;
+            },
+
+            // ==================== CSV EXPORT ====================
+            exportCSV() {
+                if (!this.validateAndDisplay()) {
+                    alert('Please fix validation errors before exporting.');
+                    return;
+                }
+
+                const currentWeek = this.data.weeks[this.currentWeekStart];
+                const weekDates = this.getWeekDates(this.currentWeekStart);
+                const dayNames = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+
+                // CSV header
+                let csv = '(Do Not Modify) Time Entry,(Do Not Modify) Row Checksum,(Do Not Modify) Modified On,Time Source,Project,Project Task,Cost Type,CBS,Role,Type,Entry Status,Date,Duration,Description,External Comments,Work Location\n';
+
+                // Generate rows
+                currentWeek.rows.forEach(row => {
+                    dayNames.forEach((day, dayIndex) => {
+                        const hours = parseFloat(row.hours[day] || 0);
+                        if (hours > 0) {
+                            const date = weekDates[dayIndex];
+                            const dateStr = this.formatCSVDate(date);
+                            const duration = Math.round(hours * 60); // Convert to minutes
+
+                            csv += `,,,"${CONFIG.csvDefaults.timeSource}","${row.project}","${row.projectTask}","${row.costType}","${row.cbs}","${row.role}","${row.type}","${CONFIG.csvDefaults.entryStatus}",${dateStr},${duration},"${row.description}","${row.description}","${row.workLocation}"\n`;
+                        }
+                    });
+                });
+
+                // Download
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Timesheet_${this.currentWeekStart}.csv`;
+                a.click();
+                URL.revokeObjectURL(url);
+            },
+
+            formatCSVDate(date) {
+                const day = String(date.getDate()).padStart(2, '0');
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const year = date.getFullYear();
+                return `${day}/${month}/${year}`;
+            },
+
+            // ==================== JSON IMPORT/EXPORT ====================
+            compactData(data) {
+                // Create a deep copy to avoid modifying original data
+                const compacted = JSON.parse(JSON.stringify(data));
+
+                // Helper: Check if a row is completely empty
+                const isEmptyRow = (row) => {
+                    const hasAnyHours = Object.values(row.hours || {}).some(h => h > 0);
+                    const hasAnyData = row.project || row.projectTask || row.costType ||
+                                     row.cbs || row.role || row.type || row.workLocation || row.description;
+                    return !hasAnyHours && !hasAnyData;
+                };
+
+                // Helper: Check if a week should be omitted (only empty rows)
+                const isEmptyWeek = (week) => {
+                    return week.rows.every(row => isEmptyRow(row));
+                };
+
+                // Process weeks
+                const compactedWeeks = {};
+                for (const [weekKey, week] of Object.entries(compacted.weeks || {})) {
+                    // Skip completely empty weeks
+                    if (isEmptyWeek(week)) {
+                        continue;
+                    }
+
+                    // Compact each row in the week
+                    const compactedRows = week.rows.map(row => {
+                        const compactedRow = { id: row.id };
+
+                        // Only include non-empty string fields
+                        const fields = ['project', 'projectTask', 'costType', 'cbs', 'role', 'type', 'workLocation', 'description'];
+                        fields.forEach(field => {
+                            if (row[field] && row[field] !== '') {
+                                compactedRow[field] = row[field];
+                            }
+                        });
+
+                        // Only include non-zero hours
+                        const compactedHours = {};
+                        const days = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+                        days.forEach(day => {
+                            if (row.hours && row.hours[day] && row.hours[day] !== 0) {
+                                compactedHours[day] = row.hours[day];
+                            }
+                        });
+
+                        // Only include hours object if it has any data
+                        if (Object.keys(compactedHours).length > 0) {
+                            compactedRow.hours = compactedHours;
+                        } else {
+                            compactedRow.hours = {};
+                        }
+
+                        return compactedRow;
+                    });
+
+                    compactedWeeks[weekKey] = {
+                        weekStart: week.weekStart,
+                        rows: compactedRows
+                    };
+                }
+
+                compacted.weeks = compactedWeeks;
+                return compacted;
+            },
+
+            expandData(data) {
+                // Create a deep copy to avoid modifying imported data
+                const expanded = JSON.parse(JSON.stringify(data));
+
+                // Ensure weeks object exists
+                if (!expanded.weeks) {
+                    expanded.weeks = {};
+                }
+
+                // Process each week to fill in missing fields
+                for (const [weekKey, week] of Object.entries(expanded.weeks)) {
+                    week.rows = week.rows.map(row => {
+                        // Ensure all string fields exist (default to empty string)
+                        const fields = ['project', 'projectTask', 'costType', 'cbs', 'role', 'type', 'workLocation', 'description'];
+                        fields.forEach(field => {
+                            if (!row.hasOwnProperty(field)) {
+                                row[field] = '';
+                            }
+                        });
+
+                        // Ensure hours object exists with all days
+                        if (!row.hours) {
+                            row.hours = {};
+                        }
+
+                        const days = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+                        days.forEach(day => {
+                            if (!row.hours.hasOwnProperty(day)) {
+                                row.hours[day] = 0;
+                            }
+                        });
+
+                        return row;
+                    });
+                }
+
+                return expanded;
+            },
+
+            exportJSON() {
+                const compacted = this.compactData(this.data);
+                const json = JSON.stringify(compacted, null, 2);
+                const blob = new Blob([json], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `KBR_Timesheet_Backup_${new Date().toISOString().split('T')[0]}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+            },
+
+            importJSON() {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = 'application/json';
+                input.onchange = (e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                            try {
+                                const imported = JSON.parse(event.target.result);
+                                if (confirm('This will replace all current data. Are you sure?')) {
+                                    // Expand compacted data to ensure all fields are present
+                                    this.data = this.expandData(imported);
+                                    this.currentWeekStart = this.data.preferences.lastWeekStart || this.getCurrentWeekStart();
+                                    this.ensureWeekExists(this.currentWeekStart);
+                                    this.render();
+                                    this.saveData();
+                                }
+                            } catch (error) {
+                                alert('Invalid JSON file. Please check the file and try again.');
+                            }
+                        };
+                        reader.readAsText(file);
+                    }
+                };
+                input.click();
+            },
+
+            // ==================== EXPECTED HOURS ====================
+            showExpectedHoursModal() {
+                const modal = document.getElementById('expectedHoursModal');
+                const input = document.getElementById('expectedHoursInput');
+                input.value = this.data.preferences.expectedWeeklyHours;
+                modal.classList.add('active');
+                setTimeout(() => {
+                    input.focus();
+                    input.select();
+                }, 100);
+            },
+
+            saveExpectedHours() {
+                const input = document.getElementById('expectedHoursInput');
+                const value = parseFloat(input.value);
+
+                if (isNaN(value) || value < 0) {
+                    alert('Please enter a valid positive number');
+                    return;
+                }
+
+                this.data.preferences.expectedWeeklyHours = value;
+                document.getElementById('expectedHoursValue').textContent = value;
+
+                this.saveData();
+                this.closeExpectedHoursModal();
+            },
+
+            closeExpectedHoursModal() {
+                document.getElementById('expectedHoursModal').classList.remove('active');
+            },
+
+            // ==================== TEMPLATES ====================
+            showTemplates() {
+                const modal = document.getElementById('templateModal');
+                this.renderTemplateList();
+                modal.classList.add('active');
+            },
+
+            closeTemplateModal() {
+                document.getElementById('templateModal').classList.remove('active');
+            },
+
+            renderTemplateList() {
+                const list = document.getElementById('templateList');
+                list.innerHTML = '';
+
+                // Merge predefined and custom templates (predefined first)
+                const allTemplates = [
+                    ...CONFIG.predefinedTemplates,
+                    ...this.data.templates
+                ];
+
+                if (allTemplates.length === 0) {
+                    list.innerHTML = '<li>No templates available</li>';
+                    return;
+                }
+
+                allTemplates.forEach(template => {
+                    const li = document.createElement('li');
+                    li.className = 'template-item';
+
+                    // Get project name from template (handle both old and new structure)
+                    const projectName = template.fields?.project || template.project || '';
+
+                    if (template.predefined) {
+                        // Predefined template: Use + Copy & Edit buttons
+                        li.innerHTML = `
+                            <span><strong>${template.name}</strong> - ${projectName}</span>
+                            <div class="template-actions">
+                                <button class="btn" onclick="app.useTemplate('${template.id}')">Use</button>
+                                <button class="btn btn-secondary" onclick="app.copyAndEditTemplate('${template.id}')">Copy & Edit</button>
+                            </div>
+                        `;
+                    } else {
+                        // Custom template: Use + Edit + Delete buttons
+                        li.innerHTML = `
+                            <span><strong>${template.name}</strong> - ${projectName}</span>
+                            <div class="template-actions">
+                                <button class="btn" onclick="app.useTemplate('${template.id}')">Use</button>
+                                <button class="btn btn-secondary" onclick="app.editTemplate('${template.id}')">Edit</button>
+                                <button class="btn btn-danger" onclick="app.deleteTemplate('${template.id}')">Delete</button>
+                            </div>
+                        `;
+                    }
+
+                    list.appendChild(li);
+                });
+            },
+
+            showSaveTemplate() {
+                const modal = document.getElementById('saveTemplateModal');
+                const select = document.getElementById('templateRow');
+                select.innerHTML = '';
+
+                const currentWeek = this.data.weeks[this.currentWeekStart];
+                currentWeek.rows.forEach((row, index) => {
+                    const option = document.createElement('option');
+                    option.value = row.id;
+                    option.textContent = `Row ${index + 1} - ${row.project || '(empty)'}`;
+                    select.appendChild(option);
+                });
+
+                modal.classList.add('active');
+                this.closeTemplateModal();
+            },
+
+            closeSaveTemplateModal() {
+                document.getElementById('saveTemplateModal').classList.remove('active');
+                document.getElementById('templateName').value = '';
+            },
+
+            saveTemplate() {
+                const name = document.getElementById('templateName').value.trim();
+                const rowId = document.getElementById('templateRow').value;
+
+                if (!name) {
+                    alert('Please enter a template name');
+                    return;
+                }
+
+                const currentWeek = this.data.weeks[this.currentWeekStart];
+                const row = currentWeek.rows.find(r => r.id === rowId);
+
+                if (row) {
+                    const template = {
+                        id: 'tmpl-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9),
+                        name: name,
+                        project: row.project,
+                        projectTask: row.projectTask,
+                        costType: row.costType,
+                        cbs: row.cbs,
+                        role: row.role,
+                        type: row.type,
+                        workLocation: row.workLocation,
+                        description: row.description
+                    };
+
+                    this.data.templates.push(template);
+                    this.saveData();
+                    this.closeSaveTemplateModal();
+                    alert('Template saved successfully!');
+                }
+            },
+
+            useTemplate(templateId) {
+                // Check both predefined and custom templates
+                let template = CONFIG.predefinedTemplates.find(t => t.id === templateId);
+                if (!template) {
+                    template = this.data.templates.find(t => t.id === templateId);
+                }
+                if (!template) return;
+
+                const currentWeek = this.data.weeks[this.currentWeekStart];
+                const newRow = this.createEmptyRow();
+
+                // Handle both new structure (predefined with fields) and old structure (custom flat)
+                const fields = template.fields || template;
+                newRow.project = fields.project || '';
+                newRow.projectTask = fields.projectTask || '';
+                newRow.costType = fields.costType || '';
+                newRow.cbs = fields.cbs || '';
+                newRow.role = fields.role || '';
+                newRow.type = fields.type || '';
+                newRow.workLocation = fields.workLocation || '';
+                newRow.description = fields.description || '';
+
+                currentWeek.rows.push(newRow);
+                this.render();
+                this.saveData();
+                this.closeTemplateModal();
+            },
+
+            deleteTemplate(templateId) {
+                // Prevent deletion of predefined templates
+                const isPredefined = CONFIG.predefinedTemplates.some(t => t.id === templateId);
+                if (isPredefined) {
+                    alert('Cannot delete predefined templates. Use "Copy & Edit" to create a custom version.');
+                    return;
+                }
+
+                if (confirm('Are you sure you want to delete this template?')) {
+                    this.data.templates = this.data.templates.filter(t => t.id !== templateId);
+                    this.saveData();
+                    this.renderTemplateList();
+                }
+            },
+
+            copyAndEditTemplate(templateId) {
+                // Find the predefined template
+                const predefinedTemplate = CONFIG.predefinedTemplates.find(t => t.id === templateId);
+                if (!predefinedTemplate) return;
+
+                // Create a copy as a custom template
+                const newTemplate = {
+                    id: 'tmpl-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9),
+                    name: predefinedTemplate.name + ' (Copy)',
+                    project: predefinedTemplate.fields.project,
+                    projectTask: predefinedTemplate.fields.projectTask,
+                    costType: predefinedTemplate.fields.costType,
+                    cbs: predefinedTemplate.fields.cbs,
+                    role: predefinedTemplate.fields.role,
+                    type: predefinedTemplate.fields.type,
+                    description: predefinedTemplate.fields.description
+                };
+
+                this.data.templates.push(newTemplate);
+                this.saveData();
+
+                // Open edit modal for the new copy
+                this.editTemplate(newTemplate.id);
+            },
+
+            editTemplate(templateId) {
+                // Only allow editing custom templates
+                const template = this.data.templates.find(t => t.id === templateId);
+                if (!template) return;
+
+                // Populate dropdowns in edit modal
+                this.populateEditTemplateDropdowns();
+
+                // Populate form with template data
+                document.getElementById('editTemplateName').value = template.name || '';
+                document.getElementById('editTemplateProject').value = template.project || '';
+                document.getElementById('editTemplateProjectTask').value = template.projectTask || '';
+                document.getElementById('editTemplateCostType').value = template.costType || '';
+                document.getElementById('editTemplateCbs').value = template.cbs || '';
+                document.getElementById('editTemplateRole').value = template.role || '';
+                document.getElementById('editTemplateType').value = template.type || '';
+                document.getElementById('editTemplateDescription').value = template.description || '';
+                document.getElementById('editTemplateId').value = templateId;
+
+                // Show modal
+                document.getElementById('editTemplateModal').classList.add('active');
+                this.closeTemplateModal();
+            },
+
+            populateEditTemplateDropdowns() {
+                // Populate Cost Type dropdown
+                const costTypeSelect = document.getElementById('editTemplateCostType');
+                costTypeSelect.innerHTML = '<option value="">-- Select --</option>';
+                CONFIG.dropdownOptions.costType.forEach(option => {
+                    costTypeSelect.innerHTML += `<option value="${option}">${option}</option>`;
+                });
+
+                // Populate CBS dropdown (allow blank)
+                const cbsSelect = document.getElementById('editTemplateCbs');
+                cbsSelect.innerHTML = '<option value="">-- Select or leave blank --</option>';
+                CONFIG.dropdownOptions.cbs.forEach(option => {
+                    cbsSelect.innerHTML += `<option value="${option}">${option}</option>`;
+                });
+
+                // Populate Role dropdown
+                const roleSelect = document.getElementById('editTemplateRole');
+                roleSelect.innerHTML = '<option value="">-- Select --</option>';
+                CONFIG.dropdownOptions.role.forEach(option => {
+                    roleSelect.innerHTML += `<option value="${option}">${option}</option>`;
+                });
+
+                // Populate Type dropdown
+                const typeSelect = document.getElementById('editTemplateType');
+                typeSelect.innerHTML = '<option value="">-- Select --</option>';
+                CONFIG.dropdownOptions.type.forEach(option => {
+                    typeSelect.innerHTML += `<option value="${option}">${option}</option>`;
+                });
+            },
+
+            closeEditTemplateModal() {
+                document.getElementById('editTemplateModal').classList.remove('active');
+            },
+
+            saveEditedTemplate() {
+                const templateId = document.getElementById('editTemplateId').value;
+                const name = document.getElementById('editTemplateName').value.trim();
+                const project = document.getElementById('editTemplateProject').value.trim();
+                const projectTask = document.getElementById('editTemplateProjectTask').value.trim();
+                const costType = document.getElementById('editTemplateCostType').value;
+                const cbs = document.getElementById('editTemplateCbs').value;
+                const role = document.getElementById('editTemplateRole').value;
+                const type = document.getElementById('editTemplateType').value;
+                const description = document.getElementById('editTemplateDescription').value.trim();
+
+                if (!name) {
+                    alert('Please enter a template name');
+                    return;
+                }
+
+                // Find and update the template
+                const template = this.data.templates.find(t => t.id === templateId);
+                if (template) {
+                    template.name = name;
+                    template.project = project;
+                    template.projectTask = projectTask;
+                    template.costType = costType;
+                    template.cbs = cbs;
+                    template.role = role;
+                    template.type = type;
+                    template.description = description;
+
+                    this.saveData();
+                    this.renderTemplateList();
+                    this.closeEditTemplateModal();
+                }
+            },
+
+            // ==================== COPY FROM OTHER WEEK ====================
+            showCopyFromWeek() {
+                const modal = document.getElementById('copyFromWeekModal');
+                this.populateWeekSelector();
+                modal.classList.add('active');
+            },
+
+            closeCopyFromWeekModal() {
+                document.getElementById('copyFromWeekModal').classList.remove('active');
+                document.getElementById('weekRowsContainer').classList.add('hidden');
+            },
+
+            populateWeekSelector() {
+                const select = document.getElementById('weekSelector');
+                select.innerHTML = '<option value="">-- Select a week --</option>';
+
+                // Prefilter to only include weeks with hours data
+                const allWeeks = Object.keys(this.data.weeks).sort().reverse();
+                const weeksWithData = allWeeks.filter(weekStart => this.hasWeekData(weekStart));
+
+                weeksWithData.forEach(weekStart => {
+                    const weekDates = this.getWeekDates(weekStart);
+                    const startStr = this.formatDisplayDate(weekStart);
+                    const endDate = weekDates[6];
+                    const endStr = this.formatDisplayDate(this.formatDate(endDate));
+
+                    const option = document.createElement('option');
+                    option.value = weekStart;
+                    option.textContent = `Week of ${startStr} - ${endStr}`;
+
+                    if (weekStart === this.currentWeekStart) {
+                        option.textContent += ' (Current)';
+                    }
+
+                    select.appendChild(option);
+                });
+            },
+
+            loadWeekRows() {
+                const weekStart = document.getElementById('weekSelector').value;
+                if (!weekStart) {
+                    document.getElementById('weekRowsContainer').classList.add('hidden');
+                    return;
+                }
+
+                const container = document.getElementById('weekRowsContainer');
+                const list = document.getElementById('weekRowsList');
+
+                const week = this.data.weeks[weekStart];
+                if (!week || !week.rows || week.rows.length === 0) {
+                    list.innerHTML = '<p style="padding: 20px; text-align: center;">No rows in this week</p>';
+                    container.classList.remove('hidden');
+                    return;
+                }
+
+                list.innerHTML = '';
+                week.rows.forEach((row, index) => {
+                    const total = this.getRowTotal(row);
+                    const item = document.createElement('div');
+                    item.className = 'week-row-item';
+                    item.innerHTML = `
+                        <input type="checkbox" class="week-row-checkbox" data-row-index="${index}">
+                        <div class="week-row-details">
+                            <strong>${row.project || '(No project)'} - ${row.description || '(No description)'}</strong>
+                            <small>Task: ${row.projectTask || 'N/A'} | Total: ${total} hours</small>
+                        </div>
+                    `;
+                    list.appendChild(item);
+                });
+
+                container.classList.remove('hidden');
+            },
+
+            toggleSelectAllWeekRows() {
+                const checkboxes = document.querySelectorAll('.week-row-checkbox');
+                const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+                checkboxes.forEach(cb => cb.checked = !allChecked);
+            },
+
+            copySelectedRows() {
+                const weekStart = document.getElementById('weekSelector').value;
+                if (!weekStart) return;
+
+                const sourceWeek = this.data.weeks[weekStart];
+                const currentWeek = this.data.weeks[this.currentWeekStart];
+
+                const checkboxes = document.querySelectorAll('.week-row-checkbox:checked');
+                if (checkboxes.length === 0) {
+                    alert('Please select at least one row to copy');
+                    return;
+                }
+
+                const includeHours = document.getElementById('includeHours').checked;
+
+                checkboxes.forEach(checkbox => {
+                    const rowIndex = parseInt(checkbox.dataset.rowIndex);
+                    const sourceRow = sourceWeek.rows[rowIndex];
+
+                    if (sourceRow) {
+                        const newRow = JSON.parse(JSON.stringify(sourceRow));
+                        newRow.id = 'row-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+
+                        if (!includeHours) {
+                            newRow.hours = { mon: 0, tue: 0, wed: 0, thu: 0, fri: 0, sat: 0, sun: 0 };
+                        }
+
+                        currentWeek.rows.push(newRow);
+                    }
+                });
+
+                this.render();
+                this.saveData();
+                this.closeCopyFromWeekModal();
+
+                alert(`Successfully copied ${checkboxes.length} row(s) to current week`);
+            }
+        };
+
+        // Initialize app when page loads
+        window.addEventListener('DOMContentLoaded', () => {
+            app.init();
+            initFAQSearch();
+        });
+
+        // ==================== FAQ SEARCH FUNCTIONALITY ====================
+        function initFAQSearch() {
+            const searchInput = document.getElementById('faqSearch');
+            if (!searchInput) return;
+
+            const faqItems = document.querySelectorAll('.faq-item');
+
+            searchInput.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase().trim();
+
+                faqItems.forEach(item => {
+                    const question = item.querySelector('.faq-question').textContent.toLowerCase();
+                    const answer = item.querySelector('.faq-answer').textContent.toLowerCase();
+                    const keywords = item.dataset.keywords || '';
+
+                    const matches = question.includes(searchTerm) ||
+                                  answer.includes(searchTerm) ||
+                                  keywords.toLowerCase().includes(searchTerm);
+
+                    item.classList.toggle('hidden', !matches && searchTerm !== '');
+                });
+            });
+        }
+    </script>
+</body>
+</html>
