@@ -128,7 +128,8 @@
         }
 
         .validation-panel {
-            margin-bottom: 15px;
+            margin-top: 20px;
+            margin-bottom: 20px;
             padding: 12px;
             border-radius: 4px;
             display: none;
@@ -229,6 +230,18 @@
         input.hours-input {
             width: 60px;
             text-align: right;
+        }
+
+        .zero-value {
+            color: #999;
+        }
+
+        .zero-value:focus {
+            color: #333;
+        }
+
+        .row-total.zero-value {
+            color: #999;
         }
 
         input.validation-error {
@@ -689,19 +702,18 @@
             color: #333;
         }
 
-        .cog-btn {
-            background: transparent;
-            border: 1px solid #ccc;
-            padding: 2px 6px;
-            border-radius: 4px;
+        .edit-link {
+            color: #5a7fa0;
+            text-decoration: none;
             cursor: pointer;
-            font-size: 16px;
-            transition: all 0.2s;
+            font-size: 14px;
+            margin-left: 6px;
         }
 
-        .cog-btn:hover {
-            background: #f0f0f0;
-            border-color: #0066cc;
+        .edit-link:hover,
+        .edit-link:focus {
+            text-decoration: underline;
+            color: #4a6f90;
         }
 
         /* Week Picker */
@@ -1085,8 +1097,8 @@
                 <h1>KBR Timesheet Helper</h1>
                 <div class="expected-hours-container">
                     <span class="expected-hours-text">Expected hours per week: <span id="expectedHoursValue">38</span> hours</span>
-                    <button class="cog-btn" onclick="app.showExpectedHoursModal()"
-                            aria-label="Edit expected hours" title="Edit expected hours">⚙️</button>
+                    <a href="#" class="edit-link" onclick="app.showExpectedHoursModal(); return false;"
+                       aria-label="Edit expected hours per week">(edit)</a>
                 </div>
                 <div class="week-nav">
                     <button onclick="app.previousWeek()">← Previous Week</button>
@@ -1117,16 +1129,11 @@
 
         <div class="controls">
             <button class="btn" onclick="app.addRow()">+ Add Row</button>
+            <button class="btn" onclick="app.showTemplates()">Add Template</button>
             <button class="btn" onclick="app.exportCSV()">Export CSV</button>
-            <button class="btn btn-secondary" onclick="app.exportJSON()">Export Backup (JSON)</button>
-            <button class="btn btn-secondary" onclick="app.importJSON()">Import Backup (JSON)</button>
-            <button class="btn btn-secondary" onclick="app.showTemplates()">Templates</button>
             <button class="btn btn-secondary" onclick="app.showCopyFromWeek()">Copy from Other Week</button>
-        </div>
-
-        <div class="validation-panel" id="validationPanel">
-            <h3>Validation Issues</h3>
-            <ul id="validationList"></ul>
+            <button class="btn btn-secondary" onclick="app.exportJSON()">Export Backup</button>
+            <button class="btn btn-secondary" onclick="app.importJSON()">Import Backup</button>
         </div>
 
         <div class="table-container">
@@ -1203,6 +1210,11 @@
                     </tr>
                 </tfoot>
             </table>
+        </div>
+
+        <div class="validation-panel" id="validationPanel">
+            <h3>Validation Issues</h3>
+            <ul id="validationList"></ul>
         </div>
 
         <!-- Weekly Summary by Category -->
@@ -1798,6 +1810,27 @@
         </div>
     </div>
 
+    <!-- Export Warning Modal -->
+    <div class="modal" id="exportWarningModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Confirm Export</h2>
+                <button class="close-btn" onclick="app.closeExportWarningModal()">&times;</button>
+            </div>
+            <div>
+                <p style="margin-bottom: 15px;">
+                    You have entered <strong id="modalTotalHours"></strong> hours this week,
+                    which is less than your expected <strong id="modalExpectedHours"></strong> hours per week.
+                </p>
+                <p style="margin-bottom: 20px;">Are you sure you want to export?</p>
+                <div style="margin-top: 15px;">
+                    <button class="btn btn-secondary" onclick="app.closeExportWarningModal()">Return to Timesheet</button>
+                    <button class="btn" onclick="app.proceedWithExport()">Download CSV Anyway</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // ==================== CONFIGURATION ====================
         const CONFIG = {
@@ -1835,8 +1868,6 @@
                     id: "agileAccrualRequires8Hours",
                     level: "warning",
                     message: "", // Generated dynamically per day
-                    violationDay: null,
-                    violationWorkHours: null,
                     test: function(row, weekData) {
                         // Skip if not Agile Accrual type
                         if (row.type !== "Agile Accrual") {
@@ -1870,10 +1901,12 @@
                                     .reduce((sum, r) => sum + (r.hours[day] || 0), 0);
 
                                 if (workHours < 8) {
-                                    // Store violation details for message generation
-                                    this.violationDay = dayNames[day];
-                                    this.violationWorkHours = workHours;
-                                    return false;
+                                    // Return rich result object instead of mutating state
+                                    return {
+                                        pass: false,
+                                        violationDay: dayNames[day],
+                                        violationWorkHours: workHours
+                                    };
                                 }
                             }
                         }
@@ -2267,14 +2300,14 @@
                         <td>${this.renderSelect('workLocation', row.workLocation, row.id)}</td>
                         <td><input type="text" value="${row.description}" data-field="description" data-row="${row.id}"></td>
                         <td class="category-cell" data-row="${row.id}" title="${this.getCategoryFull(this.getCategory(row.project))}">${this.getCategory(row.project)}</td>
-                        <td><input type="number" class="hours-input" step="0.5" min="0" value="${row.hours.mon}" data-field="hours.mon" data-row="${row.id}"></td>
-                        <td><input type="number" class="hours-input" step="0.5" min="0" value="${row.hours.tue}" data-field="hours.tue" data-row="${row.id}"></td>
-                        <td><input type="number" class="hours-input" step="0.5" min="0" value="${row.hours.wed}" data-field="hours.wed" data-row="${row.id}"></td>
-                        <td><input type="number" class="hours-input" step="0.5" min="0" value="${row.hours.thu}" data-field="hours.thu" data-row="${row.id}"></td>
-                        <td><input type="number" class="hours-input" step="0.5" min="0" value="${row.hours.fri}" data-field="hours.fri" data-row="${row.id}"></td>
-                        <td><input type="number" class="hours-input" step="0.5" min="0" value="${row.hours.sat}" data-field="hours.sat" data-row="${row.id}"></td>
-                        <td><input type="number" class="hours-input" step="0.5" min="0" value="${row.hours.sun}" data-field="hours.sun" data-row="${row.id}"></td>
-                        <td class="row-total">${this.getRowTotal(row)}</td>
+                        <td><input type="number" class="hours-input${(parseFloat(row.hours.mon) || 0) === 0 ? ' zero-value' : ''}" step="0.5" min="0" value="${row.hours.mon}" data-field="hours.mon" data-row="${row.id}"></td>
+                        <td><input type="number" class="hours-input${(parseFloat(row.hours.tue) || 0) === 0 ? ' zero-value' : ''}" step="0.5" min="0" value="${row.hours.tue}" data-field="hours.tue" data-row="${row.id}"></td>
+                        <td><input type="number" class="hours-input${(parseFloat(row.hours.wed) || 0) === 0 ? ' zero-value' : ''}" step="0.5" min="0" value="${row.hours.wed}" data-field="hours.wed" data-row="${row.id}"></td>
+                        <td><input type="number" class="hours-input${(parseFloat(row.hours.thu) || 0) === 0 ? ' zero-value' : ''}" step="0.5" min="0" value="${row.hours.thu}" data-field="hours.thu" data-row="${row.id}"></td>
+                        <td><input type="number" class="hours-input${(parseFloat(row.hours.fri) || 0) === 0 ? ' zero-value' : ''}" step="0.5" min="0" value="${row.hours.fri}" data-field="hours.fri" data-row="${row.id}"></td>
+                        <td><input type="number" class="hours-input${(parseFloat(row.hours.sat) || 0) === 0 ? ' zero-value' : ''}" step="0.5" min="0" value="${row.hours.sat}" data-field="hours.sat" data-row="${row.id}"></td>
+                        <td><input type="number" class="hours-input${(parseFloat(row.hours.sun) || 0) === 0 ? ' zero-value' : ''}" step="0.5" min="0" value="${row.hours.sun}" data-field="hours.sun" data-row="${row.id}"></td>
+                        <td class="row-total${(parseFloat(this.getRowTotal(row)) || 0) === 0 ? ' zero-value' : ''}">${this.getRowTotal(row)}</td>
                     `;
 
                     tbody.appendChild(tr);
@@ -2437,6 +2470,27 @@
                     if (field.startsWith('hours.')) {
                         const day = field.split('.')[1];
                         row.hours[day] = parseFloat(value) || 0;
+
+                        // Update zero-value class on the input
+                        const numValue = parseFloat(value) || 0;
+                        if (numValue === 0) {
+                            input.classList.add('zero-value');
+                        } else {
+                            input.classList.remove('zero-value');
+                        }
+
+                        // Update row total's zero-value class and text content
+                        const tr = input.closest('tr');
+                        const totalCell = tr.querySelector('.row-total');
+                        if (totalCell) {
+                            const rowTotal = parseFloat(this.getRowTotal(row)) || 0;
+                            totalCell.textContent = this.getRowTotal(row);
+                            if (rowTotal === 0) {
+                                totalCell.classList.add('zero-value');
+                            } else {
+                                totalCell.classList.remove('zero-value');
+                            }
+                        }
                     } else {
                         row[field] = value;
                     }
@@ -2942,11 +2996,14 @@
                             ? rule.test.call(rule, row, currentWeek)
                             : rule.test(row);
 
-                        if (!testResult) {
+                        // Handle both boolean and rich result object
+                        const passed = typeof testResult === 'boolean' ? testResult : testResult.pass;
+
+                        if (!passed) {
                             // Generate dynamic message for Agile Accrual rule
                             let message = rule.message;
-                            if (rule.id === 'agileAccrualRequires8Hours' && rule.violationDay) {
-                                message = `Insufficient Work hours for Agile Accrual on ${rule.violationDay}: need 8, have ${rule.violationWorkHours}`;
+                            if (rule.id === 'agileAccrualRequires8Hours' && typeof testResult === 'object') {
+                                message = `Insufficient Work hours for Agile Accrual on ${testResult.violationDay}: need 8, have ${testResult.violationWorkHours}`;
                             }
 
                             const issue = { message: `Row ${index + 1}: ${message}`, rowId: row.id };
@@ -2998,6 +3055,28 @@
                     return;
                 }
 
+                // Calculate total hours for the week
+                const currentWeek = this.data.weeks[this.currentWeekStart];
+                const dayNames = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+                let totalHours = 0;
+                currentWeek.rows.forEach(row => {
+                    dayNames.forEach(day => {
+                        totalHours += parseFloat(row.hours[day] || 0);
+                    });
+                });
+
+                // Check if total hours is less than expected
+                const expectedHours = this.data.preferences.expectedWeeklyHours;
+                if (expectedHours > 0 && totalHours < expectedHours) {
+                    this.showExportWarningModal(totalHours, expectedHours);
+                    return;
+                }
+
+                // Proceed with export
+                this.proceedWithExport();
+            },
+
+            proceedWithExport() {
                 const currentWeek = this.data.weeks[this.currentWeekStart];
                 const weekDates = this.getWeekDates(this.currentWeekStart);
                 const dayNames = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
@@ -3027,6 +3106,19 @@
                 a.download = `Timesheet_${this.currentWeekStart}.csv`;
                 a.click();
                 URL.revokeObjectURL(url);
+
+                // Close modal if it was open
+                this.closeExportWarningModal();
+            },
+
+            showExportWarningModal(totalHours, expectedHours) {
+                document.getElementById('modalTotalHours').textContent = totalHours.toFixed(1);
+                document.getElementById('modalExpectedHours').textContent = expectedHours.toFixed(1);
+                document.getElementById('exportWarningModal').classList.add('active');
+            },
+
+            closeExportWarningModal() {
+                document.getElementById('exportWarningModal').classList.remove('active');
             },
 
             formatCSVDate(date) {
