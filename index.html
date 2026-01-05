@@ -1101,6 +1101,11 @@
                     <a href="#" class="edit-link" onclick="app.showExpectedHoursModal(); return false;"
                        aria-label="Edit expected hours per week">(edit)</a>
                 </div>
+                <div class="work-location-container">
+                    <span class="work-location-text">Work Location: <span id="workLocationValue">Brisbane (03600100000)</span></span>
+                    <a href="#" class="edit-link" onclick="app.showWorkLocationModal(); return false;"
+                       aria-label="Edit work location">(edit)</a>
+                </div>
                 <div class="week-nav">
                     <button onclick="app.previousWeek()">← Previous Week</button>
                     <button class="week-display-btn" onclick="app.openWeekPicker()"
@@ -1160,9 +1165,6 @@
                         <th style="width: 100px;" class="sortable" onclick="app.sortColumn('type')" aria-sort="none">
                             Type <span id="sort-type" class="sort-indicator">▾</span>
                         </th>
-                        <th style="width: 130px;" class="sortable" onclick="app.sortColumn('workLocation')" aria-sort="none">
-                            Work Location <span id="sort-workLocation" class="sort-indicator">▾</span>
-                        </th>
                         <th style="width: 200px;" class="sortable" onclick="app.sortColumn('description')" aria-sort="none">
                             Description <span id="sort-description" class="sort-indicator">▾</span>
                         </th>
@@ -1199,7 +1201,7 @@
                 </tbody>
                 <tfoot>
                     <tr class="totals-row">
-                        <td colspan="10" style="text-align: right;">Daily Totals:</td>
+                        <td colspan="9" style="text-align: right;">Daily Totals:</td>
                         <td id="totalMon">0</td>
                         <td id="totalTue">0</td>
                         <td id="totalWed">0</td>
@@ -1811,6 +1813,30 @@
         </div>
     </div>
 
+    <!-- Work Location Modal -->
+    <div class="modal" id="workLocationModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Work Location Settings</h2>
+                <button class="close-btn" onclick="app.closeWorkLocationModal()">&times;</button>
+            </div>
+            <div>
+                <label for="workLocationSelect">Select your work location:</label>
+                <select id="workLocationSelect" class="modal-input">
+                    <option value="brisbane">Brisbane (03600100000)</option>
+                    <option value="sydney">Sydney (SYDNEY_CODE)</option>
+                    <option value="melbourne">Melbourne (MELBOURNE_CODE)</option>
+                    <option value="perth">Perth (PERTH_CODE)</option>
+                    <option value="adelaide">Adelaide (ADELAIDE_CODE)</option>
+                </select>
+                <div style="margin-top: 15px;">
+                    <button class="btn" onclick="app.saveWorkLocation()">Save</button>
+                    <button class="btn btn-secondary" onclick="app.closeWorkLocationModal()">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Export Warning Modal -->
     <div class="modal" id="exportWarningModal">
         <div class="modal-content">
@@ -1844,8 +1870,15 @@
                 cbs: [
                     "A030700-Design Documents & Drawings",
                     "A020200-Project Management"
-                ],
-                workLocation: ["036001000000"]
+                ]
+            },
+
+            workLocations: {
+                brisbane: { name: "Brisbane", code: "03600100000" },
+                sydney: { name: "Sydney", code: "SYDNEY_CODE" },
+                melbourne: { name: "Melbourne", code: "MELBOURNE_CODE" },
+                perth: { name: "Perth", code: "PERTH_CODE" },
+                adelaide: { name: "Adelaide", code: "ADELAIDE_CODE" }
             },
 
             csvDefaults: {
@@ -1935,8 +1968,7 @@
                         cbs: "A030700-Design Documents & Drawings",
                         role: "Team Member",
                         type: "Work",
-                        description: "QLD Overheads",
-                        workLocation: ""
+                        description: "QLD Overheads"
                     }
                 },
                 {
@@ -1950,8 +1982,7 @@
                         cbs: "",
                         role: "Team Member",
                         type: "Paid Time Off",
-                        description: "Annual Leave",
-                        workLocation: ""
+                        description: "Annual Leave"
                     }
                 },
                 {
@@ -1965,8 +1996,7 @@
                         cbs: "",
                         role: "Team Member",
                         type: "Paid Time Off",
-                        description: "Public Holiday",
-                        workLocation: ""
+                        description: "Public Holiday"
                     }
                 },
                 {
@@ -1980,8 +2010,7 @@
                         cbs: "",
                         role: "Team Member",
                         type: "Paid Time Off",
-                        description: "Flex Time Off",
-                        workLocation: ""
+                        description: "Flex Time Off"
                     }
                 }
             ]
@@ -2027,11 +2056,6 @@
                 type: 'text',
                 accessor: (row) => row.type || ''
             },
-            workLocation: {
-                sortable: true,
-                type: 'text',
-                accessor: (row) => row.workLocation || ''
-            },
 
             // Calculated text field
             category: {
@@ -2071,7 +2095,8 @@
                 preferences: {
                     lastWeekStart: null,
                     timeIncrement: 0.5,
-                    expectedWeeklyHours: 38
+                    expectedWeeklyHours: 38,
+                    workLocation: 'brisbane'
                 },
                 dropdownOptions: CONFIG.dropdownOptions,
                 templates: [],
@@ -2090,6 +2115,11 @@
                     this.data.preferences.expectedWeeklyHours = 38;
                 }
 
+                // Set default work location if not set
+                if (!this.data.preferences.workLocation) {
+                    this.data.preferences.workLocation = 'brisbane';
+                }
+
                 this.currentWeekStart = this.data.preferences.lastWeekStart || this.getCurrentWeekStart();
                 this.ensureWeekExists(this.currentWeekStart);
                 this.render();
@@ -2098,6 +2128,9 @@
                 // Initialize expected hours display
                 document.getElementById('expectedHoursValue').textContent =
                     this.data.preferences.expectedWeeklyHours;
+
+                // Initialize work location display
+                this.updateWorkLocationDisplay();
             },
 
             getCurrentWeekStart() {
@@ -2210,7 +2243,6 @@
                     cbs: '',
                     role: '',
                     type: '',
-                    workLocation: '',
                     description: '',
                     hours: {
                         mon: 0,
@@ -2233,6 +2265,17 @@
                     }
                     // Always sync dropdownOptions from CONFIG to ensure new values are available
                     this.data.dropdownOptions = CONFIG.dropdownOptions;
+
+                    // Migration: Remove per-row workLocation (now a global setting)
+                    if (this.data.weeks) {
+                        Object.values(this.data.weeks).forEach(week => {
+                            if (week.rows) {
+                                week.rows.forEach(row => {
+                                    delete row.workLocation;
+                                });
+                            }
+                        });
+                    }
                 } catch (error) {
                     console.error('Error loading data:', error);
                     alert('Error loading saved data. Starting fresh.');
@@ -2304,7 +2347,6 @@
                         <td>${this.renderSelect('cbs', row.cbs, row.id)}</td>
                         <td>${this.renderSelect('role', row.role, row.id)}</td>
                         <td>${this.renderSelect('type', row.type, row.id)}</td>
-                        <td>${this.renderSelect('workLocation', row.workLocation, row.id)}</td>
                         <td><input type="text" value="${row.description}" data-field="description" data-row="${row.id}"></td>
                         <td class="category-cell" data-row="${row.id}" title="${this.getCategoryFull(this.getCategory(row.project))}">${this.getCategory(row.project)}</td>
                         <td><input type="number" class="hours-input${(parseFloat(row.hours.mon) || 0) === 0 ? ' zero-value' : ''}" step="0.5" min="0" value="${row.hours.mon}" data-field="hours.mon" data-row="${row.id}"></td>
@@ -3100,7 +3142,7 @@
                             const dateStr = this.formatCSVDate(date);
                             const duration = Math.round(hours * 60); // Convert to minutes
 
-                            csv += `,,,"${CONFIG.csvDefaults.timeSource}","${row.project}","${row.projectTask}","${row.costType}","${row.cbs}","${row.role}","${row.type}","${CONFIG.csvDefaults.entryStatus}",${dateStr},${duration},"${row.description}","${row.description}","${row.workLocation}"\n`;
+                            csv += `,,,"${CONFIG.csvDefaults.timeSource}","${row.project}","${row.projectTask}","${row.costType}","${row.cbs}","${row.role}","${row.type}","${CONFIG.csvDefaults.entryStatus}",${dateStr},${duration},"${row.description}","${row.description}","${this.getWorkLocationCode()}"\n`;
                         }
                     });
                 });
@@ -3144,7 +3186,7 @@
                 const isEmptyRow = (row) => {
                     const hasAnyHours = Object.values(row.hours || {}).some(h => h > 0);
                     const hasAnyData = row.project || row.projectTask || row.costType ||
-                                     row.cbs || row.role || row.type || row.workLocation || row.description;
+                                     row.cbs || row.role || row.type || row.description;
                     return !hasAnyHours && !hasAnyData;
                 };
 
@@ -3166,7 +3208,7 @@
                         const compactedRow = { id: row.id };
 
                         // Only include non-empty string fields
-                        const fields = ['project', 'projectTask', 'costType', 'cbs', 'role', 'type', 'workLocation', 'description'];
+                        const fields = ['project', 'projectTask', 'costType', 'cbs', 'role', 'type', 'description'];
                         fields.forEach(field => {
                             if (row[field] && row[field] !== '') {
                                 compactedRow[field] = row[field];
@@ -3215,7 +3257,7 @@
                 for (const [weekKey, week] of Object.entries(expanded.weeks)) {
                     week.rows = week.rows.map(row => {
                         // Ensure all string fields exist (default to empty string)
-                        const fields = ['project', 'projectTask', 'costType', 'cbs', 'role', 'type', 'workLocation', 'description'];
+                        const fields = ['project', 'projectTask', 'costType', 'cbs', 'role', 'type', 'description'];
                         fields.forEach(field => {
                             if (!row.hasOwnProperty(field)) {
                                 row[field] = '';
@@ -3312,6 +3354,39 @@
 
             closeExpectedHoursModal() {
                 document.getElementById('expectedHoursModal').classList.remove('active');
+            },
+
+            // ==================== WORK LOCATION ====================
+            showWorkLocationModal() {
+                const modal = document.getElementById('workLocationModal');
+                const select = document.getElementById('workLocationSelect');
+                select.value = this.data.preferences.workLocation || 'brisbane';
+                modal.classList.add('active');
+            },
+
+            saveWorkLocation() {
+                const select = document.getElementById('workLocationSelect');
+                const locationKey = select.value;
+                this.data.preferences.workLocation = locationKey;
+                this.updateWorkLocationDisplay();
+                this.saveData();
+                this.closeWorkLocationModal();
+            },
+
+            closeWorkLocationModal() {
+                document.getElementById('workLocationModal').classList.remove('active');
+            },
+
+            updateWorkLocationDisplay() {
+                const locationKey = this.data.preferences.workLocation || 'brisbane';
+                const location = CONFIG.workLocations[locationKey];
+                document.getElementById('workLocationValue').textContent =
+                    `${location.name} (${location.code})`;
+            },
+
+            getWorkLocationCode() {
+                const locationKey = this.data.preferences.workLocation || 'brisbane';
+                return CONFIG.workLocations[locationKey].code;
             },
 
             // ==================== TEMPLATES ====================
@@ -3416,7 +3491,6 @@
                         cbs: row.cbs,
                         role: row.role,
                         type: row.type,
-                        workLocation: row.workLocation,
                         description: row.description
                     };
 
@@ -3446,7 +3520,6 @@
                 newRow.cbs = fields.cbs || '';
                 newRow.role = fields.role || '';
                 newRow.type = fields.type || '';
-                newRow.workLocation = fields.workLocation || '';
                 newRow.description = fields.description || '';
 
                 currentWeek.rows.push(newRow);
