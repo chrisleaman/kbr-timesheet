@@ -2193,6 +2193,12 @@
                         originalOrder: this.data.weeks[weekStart].rows.map(r => r.id)
                     };
                 }
+
+                // Migration: Ensure originalOrder exists and is valid
+                const sortState = this.data.weeks[weekStart].sortState;
+                if (!sortState.originalOrder || !Array.isArray(sortState.originalOrder) || sortState.originalOrder.length === 0) {
+                    sortState.originalOrder = this.data.weeks[weekStart].rows.map(r => r.id);
+                }
             },
 
             createEmptyRow() {
@@ -3444,6 +3450,7 @@
                 newRow.description = fields.description || '';
 
                 currentWeek.rows.push(newRow);
+                currentWeek.sortState.originalOrder.push(newRow.id);
                 this.render();
                 this.saveData();
                 this.closeTemplateModal();
@@ -3688,6 +3695,7 @@
                         }
 
                         currentWeek.rows.push(newRow);
+                        currentWeek.sortState.originalOrder.push(newRow.id);
                     }
                 });
 
