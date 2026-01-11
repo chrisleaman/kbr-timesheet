@@ -1934,11 +1934,15 @@
         // ==================== CONFIGURATION ====================
         const CONFIG = {
             dropdownOptions: {
-                role: ["Team Member"],
+                role: ["Team Member", "Project Manager"],
                 type: ["Work", "Paid Time Off", "Agile Accrual"],
                 cbs: [
                     "A030700-Design Documents & Drawings",
-                    "A020200-Project Management"
+                    "A020200-Project Management",
+                    "A030502-Conceptual, Scoping & Special Studies",
+                    "A030800-Modeling & Design Databases",
+                    "A200500-Environmental Management",
+                    "A000000-Home Office & Consulting Services"
                 ]
             },
 
@@ -2082,7 +2086,46 @@
                         type: "Paid Time Off",
                         description: "Flex Time Off"
                     }
-                }
+                },
+                {
+                    id: "predefined-unpaid-leave",
+                    name: "Unpaid Leave",
+                    predefined: true,
+                    fields: {
+                        project: "Unpaid Leave",
+                        projectTask: "Unpaid Leave (1047)",
+                        cbs: "",
+                        role: "Team Member",
+                        type: "Paid Time Off", // todo - check if this is correct
+                        description: "Unpaid Leave"
+                    }
+                },
+                {
+                    id: "predefined-unapplied-defence-bids",
+                    name: "Unapplied Defence Bids",
+                    predefined: true,
+                    fields: {
+                        project: "QLD RESOURCE POOL",
+                        projectTask: "10001.00102 Unapplied Bid Hours - Defence Infrastructure & Buildings", // check spacing
+                        cbs: "A030700-Design Documents & Drawings",
+                        role: "Team Member",
+                        type: "Work",
+                        description: "Unapplied Defence Bids"
+                    }
+                },
+                {
+                    id: "predefined-unapplied-transport-bids",
+                    name: "Unapplied Transport Bids",
+                    predefined: true,
+                    fields: {
+                        project: "QLD RESOURCE POOL",
+                        projectTask: "10001.00102 Unapplied Bid Hours - Transport",
+                        cbs: "A030700-Design Documents & Drawings",
+                        role: "Team Member",
+                        type: "Work",
+                        description: "Unapplied Transport Bids"
+                    }
+                },
             ]
         };
 
