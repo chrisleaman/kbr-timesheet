@@ -1952,11 +1952,11 @@
             },
 
             workLocations: {
-                brisbane: { name: "Brisbane", code: "036001000000" },
-                sydney: { name: "Sydney", code: "SYDNEY_CODE" },
-                melbourne: { name: "Melbourne", code: "MELBOURNE_CODE" },
-                perth: { name: "Perth", code: "PERTH_CODE" },
-                adelaide: { name: "Adelaide", code: "ADELAIDE_CODE" }
+                brisbane: { name: "Brisbane", code: "036001000000", statePrefix: "QLD" },
+                sydney: { name: "Sydney", code: "SYDNEY_CODE", statePrefix: "NSW" },
+                melbourne: { name: "Melbourne", code: "MELBOURNE_CODE", statePrefix: "VIC" },
+                perth: { name: "Perth", code: "PERTH_CODE", statePrefix: "WA" },
+                adelaide: { name: "Adelaide", code: "ADELAIDE_CODE", statePrefix: "SA" }
             },
 
             csvDefaults: {
@@ -2036,16 +2036,17 @@
 
             predefinedTemplates: [
                 {
-                    id: "predefined-qld-overheads",
-                    name: "QLD Overheads",
+                    id: "predefined-office-overheads",
+                    name: "Office Overheads",
                     predefined: true,
+                    locationDynamic: true,
                     fields: {
-                        project: "QLD RESOURCE POOL",
+                        project: "{STATE} RESOURCE POOL",
                         projectTask: "00001.0001 General",
                         cbs: "A030700-Design Documents & Drawings",
                         role: "Team Member",
                         type: "Work",
-                        description: "QLD Overheads"
+                        description: "{STATE} Overheads"
                     }
                 },
                 {
@@ -2104,8 +2105,9 @@
                     id: "predefined-unapplied-defence-bids",
                     name: "Unapplied Defence Bids",
                     predefined: true,
+                    locationDynamic: true,
                     fields: {
-                        project: "QLD RESOURCE POOL",
+                        project: "{STATE} RESOURCE POOL",
                         projectTask: "10001.00102 Unapplied Bid Hours - Defence Infrastructure & Buildings", // check spacing
                         cbs: "A030700-Design Documents & Drawings",
                         role: "Team Member",
@@ -2117,8 +2119,9 @@
                     id: "predefined-unapplied-transport-bids",
                     name: "Unapplied Transport Bids",
                     predefined: true,
+                    locationDynamic: true,
                     fields: {
-                        project: "QLD RESOURCE POOL",
+                        project: "{STATE} RESOURCE POOL",
                         projectTask: "10001.00102 Unapplied Bid Hours - Transport",
                         cbs: "A030700-Design Documents & Drawings",
                         role: "Team Member",
@@ -3713,6 +3716,31 @@
                 return CONFIG.workLocations[locationKey].code;
             },
 
+            getLocationStatePrefix() {
+                const locationKey = this.data.preferences.workLocation || 'brisbane';
+                return CONFIG.workLocations[locationKey].statePrefix;
+            },
+
+            resolveTemplateFields(template) {
+                if (!template.locationDynamic) {
+                    return template.fields || template;
+                }
+
+                const statePrefix = this.getLocationStatePrefix();
+                const fields = template.fields || template;
+                const resolved = {};
+
+                for (const [key, value] of Object.entries(fields)) {
+                    if (typeof value === 'string') {
+                        resolved[key] = value.replace(/\{STATE\}/g, statePrefix);
+                    } else {
+                        resolved[key] = value;
+                    }
+                }
+
+                return resolved;
+            },
+
             // ==================== COST TYPE ====================
             showCostTypeModal() {
                 const modal = document.getElementById('costTypeModal');
@@ -3784,7 +3812,9 @@
                     li.className = 'template-item';
 
                     // Get project name from template (handle both old and new structure)
-                    const projectName = template.fields?.project || template.project || '';
+                    // For locationDynamic templates, resolve the {STATE} placeholder
+                    const resolvedFields = this.resolveTemplateFields(template);
+                    const projectName = resolvedFields.project || template.project || '';
 
                     if (template.predefined) {
                         // Predefined template: Use + Copy & Edit buttons
@@ -3875,8 +3905,8 @@
                 const currentWeek = this.data.weeks[this.currentWeekStart];
                 const newRow = this.createEmptyRow();
 
-                // Handle both new structure (predefined with fields) and old structure (custom flat)
-                const fields = template.fields || template;
+                // Resolve template fields (handles {STATE} placeholder for locationDynamic templates)
+                const fields = this.resolveTemplateFields(template);
                 newRow.project = fields.project || '';
                 newRow.projectTask = fields.projectTask || '';
                 newRow.cbs = fields.cbs || '';
@@ -3911,16 +3941,19 @@
                 const predefinedTemplate = CONFIG.predefinedTemplates.find(t => t.id === templateId);
                 if (!predefinedTemplate) return;
 
-                // Create a copy as a custom template
+                // Resolve template fields (handles {STATE} placeholder for locationDynamic templates)
+                const resolvedFields = this.resolveTemplateFields(predefinedTemplate);
+
+                // Create a copy as a custom template with resolved values
                 const newTemplate = {
                     id: 'tmpl-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9),
                     name: predefinedTemplate.name + ' (Copy)',
-                    project: predefinedTemplate.fields.project,
-                    projectTask: predefinedTemplate.fields.projectTask,
-                    cbs: predefinedTemplate.fields.cbs,
-                    role: predefinedTemplate.fields.role,
-                    type: predefinedTemplate.fields.type,
-                    description: predefinedTemplate.fields.description
+                    project: resolvedFields.project,
+                    projectTask: resolvedFields.projectTask,
+                    cbs: resolvedFields.cbs,
+                    role: resolvedFields.role,
+                    type: resolvedFields.type,
+                    description: resolvedFields.description
                 };
 
                 this.data.templates.push(newTemplate);
