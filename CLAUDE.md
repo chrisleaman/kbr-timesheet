@@ -14,7 +14,8 @@ The project should use the guidance provided by Simon Willson in the article [Us
 
 - The user should be greeted with a table in which they can input their worked hours for the week. The user should be able move back and forward through different weeks (starting on Monday).
 - The user should be able to assign hours to each day, with the smallest increment in 0.5 hours.
-- Each row should columns 'project', 'project task', 'cost type', 'cbs', 'role', 'type', 'work location', then the columns from monday to sunday where hours can be input.
+- Each row should columns 'project', 'project task', 'cbs', 'role', 'type', then the columns from monday to sunday where hours can be input.
+- Cost Type and Work Location are global settings (same for all rows) and can be configured in the header area.
 - Some of the row columns, e.g. 'role', 'type', should be able to be restricted to specific values.
 - For a particular week, the user should be able to export a .csv file with the hours. An example of the output .csv format is provided in docs/TimesheetUpload2025-12-11.csv. Note that hours for each day need to be provided on a per row basis, so there will be a bit of data duplication.
 - The page should use localStorage, so the user's data is saved. The user should also be able to export and import this data as a backup.
@@ -25,11 +26,11 @@ The project should use the guidance provided by Simon Willson in the article [Us
 
 ## Implementation
 
-The application is implemented as a single HTML file (`timesheet.html`) with embedded CSS and JavaScript. All data is stored in the browser's localStorage.
+The application is implemented as a single HTML file (`index.html`) with embedded CSS and JavaScript. All data is stored in the browser's localStorage.
 
 ### Main File
 
-- `timesheet.html` - Complete application (HTML + CSS + JavaScript)
+- `index.html` - Complete application (HTML + CSS + JavaScript)
 
 ### Reference Files
 
@@ -37,23 +38,39 @@ The application is implemented as a single HTML file (`timesheet.html`) with emb
 
 ## Configuration
 
-Configuration values are defined in the `CONFIG` object at the top of the JavaScript section in `timesheet.html`.
+Configuration values are defined in the `CONFIG` object at the top of the JavaScript section in `index.html`.
 
 ### Dropdown Options
 
-To add or modify dropdown values for fields like Role, Type, Cost Type, CBS, and Work Location:
+To add or modify dropdown values for fields like Role, Type, and CBS:
 
 ```javascript
 const CONFIG = {
     dropdownOptions: {
         role: ["Team Member", "Senior Engineer", "Project Manager"],
         type: ["Work", "Leave", "Training"],
-        costType: ["L0700-Structural", "L0800-Civil"],
         cbs: [
             "A030700-Design Documents & Drawings",
             "A020200-Project Management"
-        ],
-        workLocation: ["036001000000", "036001000001"]
+        ]
+    },
+    // ...
+};
+```
+
+### Global Settings (Cost Type & Work Location)
+
+Cost Type and Work Location are global settings that apply to all rows. They are configured via modals accessible from the header area:
+
+```javascript
+const CONFIG = {
+    costTypes: {
+        structural: { name: "Structural", code: "L0700-Structural" },
+        civil: { name: "Civil", code: "L0700-Civil" }
+    },
+    workLocations: {
+        brisbane: { name: "Brisbane", code: "03600100000" },
+        sydney: { name: "Sydney", code: "SYDNEY_CODE" }
     },
     // ...
 };
@@ -92,9 +109,11 @@ validationRules: [
 ```
 
 **Available fields in row object:**
-- `row.project`, `row.projectTask`, `row.costType`, `row.cbs`
-- `row.role`, `row.type`, `row.workLocation`, `row.description`
+- `row.project`, `row.projectTask`, `row.cbs`
+- `row.role`, `row.type`, `row.description`
 - `row.hours.mon`, `row.hours.tue`, `row.hours.wed`, `row.hours.thu`, `row.hours.fri`, `row.hours.sat`, `row.hours.sun`
+
+Note: Cost Type and Work Location are global settings (not per-row), accessible via `app.getCostType()` and `app.getWorkLocationCode()`.
 
 ## Keyboard Shortcuts
 

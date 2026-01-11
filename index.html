@@ -58,7 +58,22 @@
             height: 45px;
             width: auto;
             flex-shrink: 0;
+        }
+
+        /* Save indicator */
+        .save-indicator {
             margin-left: auto;
+            font-size: 13px;
+            color: #888;
+            flex-shrink: 0;
+        }
+
+        .save-indicator.saving {
+            color: #666;
+        }
+
+        .save-indicator.error {
+            color: #dc3545;
         }
 
         .week-nav {
@@ -245,12 +260,14 @@
             color: #999;
         }
 
-        input.validation-error {
+        input.validation-error,
+        select.validation-error {
             border-color: #dc3545;
             background-color: #ffe6e6;
         }
 
-        input.validation-warning {
+        input.validation-warning,
+        select.validation-warning {
             border-color: #ffc107;
             background-color: #fff8e1;
         }
@@ -1106,6 +1123,11 @@
                     <a href="#" class="edit-link" onclick="app.showWorkLocationModal(); return false;"
                        aria-label="Edit work location">(edit)</a>
                 </div>
+                <div class="cost-type-container">
+                    <span class="cost-type-text">Cost Type: <span id="costTypeValue">Not set</span></span>
+                    <a href="#" class="edit-link" onclick="app.showCostTypeModal(); return false;"
+                       aria-label="Edit cost type">(edit)</a>
+                </div>
                 <div class="week-nav">
                     <button onclick="app.previousWeek()">← Previous Week</button>
                     <button class="week-display-btn" onclick="app.openWeekPicker()"
@@ -1128,6 +1150,7 @@
                            aria-label="Select date to jump to week">
                 </div>
             </div>
+            <span id="saveIndicator" class="save-indicator">Saved</span>
             <img src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='270.73'%20height='149.92'%20viewBox='0%200%20500%20280'%3E%3Cg%3E%3Crect%20x='153.2'%20y='73.7'%20width='26.1'%20height='27.2'%20fill='%2300783f'/%3E%3Crect%20x='158.4'%20y='26.8'%20width='20.7'%20height='20.7'/%3E%3Crect%20x='193.3'%20y='35.4'%20width='10.8'%20height='10.8'%20fill='%23a2c7e2'/%3E%3Crect%20x='212.5'%20y='38.4'%20width='6.7'%20height='6.7'/%3E%3Crect%20x='211'%20y='51.3'%20width='14.2'%20height='14.2'%20fill='%2300205c'/%3E%3Crect%20x='197.9'%20y='71.8'%20width='23.6'%20height='23.6'%20fill='%23a2c7e2'/%3E%3Crect%20x='186.7'%20y='53.5'%20width='10.2'%20height='10.2'%20fill='%2300783f'/%3E%3Crect%20x='230'%20y='68.4'%20width='8'%20height='8'%20fill='%2300783f'/%3E%3Crect%20x='187.3'%20y='21'%20width='7.6'%20height='7.6'%20fill='%2300205c'/%3E%3Crect%20x='167.8'%20y='56.8'%20width='10.2'%20height='10.2'%20fill='%23a2c7e2'/%3E%3Cpath%20d='M174.2,168.3c-9.7,1.4-19.5,1-30,1-43.4,0-82.1-13.1-99.7-31.3-8.6-31.5-2.4-61,9.1-81.6-5.4-2.7-9.5-5.9-13.7-9.1-20.2,29.1-24.2,62.2-15.2,92.2,17,18.9,57.3,33.1,101.7,33.1,17.3,0.1,33.2-0.8,47.8-4.3zm-117-1.6c-10.3-2.5-20.3-9-27.9-14.7,18.7,40.9,59.8,66,100.5,66.1,3.4,0,8.7,0.2,11.9-0.1-31.3-2.5-64.2-19.2-84.5-51.3zM99.8,64.9c33.9,5.3,65.2,0.6,65.2,0.6-26.8,0.9-47.6-2-63.4-6.1-0.5,1.3-1.2,3.2-1.8,5.5zM80.5,79.4c-5.1,27.6-3.6,55.7,4.6,72.4-3.4-17.9-3.1-41.6,1.4-64.9,7-36.5,27.5-60.7,46.2-72.5-14.5,3-33.1,18.5-44.1,41C73.9,50.1,65.8,44.3,62.9,42,79.1,21,105.6,3.4,134.6,0,100.5-0.9,65.2,14.9,43.8,42.5c12,9.7,26.7,15.8,41.7,19.5-2.2,5.5-3.9,11.3-5,17.4zm148.2,73.3c0,0-13.8,40.1-55.1,58.4,0,0,50.5-15.9,67.5-69.6,0-0.1-7.3,7.5-12.4,11.2z'%20fill='%23004987'/%3E%3Cpath%20d='M339,181.7l-0.1-0.1c6.5-7.7,9.3-17.1,9.3-25.9v-0.4c0-20.5-14.7-41.1-47.5-41.1h-87.8l-49.6,54.9V114.2H132.4V260h30.9V201.5L219.8,260H303c13.8,0,24.9-2.7,33.8-8.2,12.3-7.7,19.4-20.7,19.4-35.6v-0.5c0-14-6.1-26.1-17.2-34zm-152.5,1.4l61-67.4v130.9zm138.2,33.1c0,13.1-10.8,18.7-28,18.7H278.1V139.5H296c14.4,0,22.3,5.7,22.3,15.9v0.4c0,11.5-9.5,16.4-24.5,16.4H286v25.4h13.2c16.4,0,25.5,6.6,25.5,18.1z'%20fill='%23004987'/%3E%3Cpath%20d='M471,260l-36.2-68.2c16.3-7.8,22.6-22.7,22.6-36.1v-0.4c0-20.5-14.7-41.1-47.5-41.1H356V260h30.8V139.4h18.6c14.4,0,22.3,5.7,22.3,15.9v0.4c0,11.5-9.5,16.4-24.5,16.4h-8.5v25.4h10.9L439,260Z'%20fill='%23004987'/%3E%3Cpath%20d='M54.8,26L59.3,14.3C59.4,14,59,13.8,58.9,14.1l-9.7,13,2-10.9C51.3,15.8,50.7,15.6,50.5,16l-5,10.1V9.7C45.5,9.4,45.1,9.4,45,9.6L40.7,25.2,38.6,14.4C38.5,14,37.9,14,37.9,14.4l-1.1,11.3-6-15.4C30.7,10,30.3,10.1,30.3,10.4L31.9,26.5,26,17.1C25.8,16.7,25.2,17,25.3,17.4l3.1,11-11.1-12.3c-0.2-0.2-0.5,0-0.4,0.3l7.3,14.4-8.8-6.5c-0.3-0.3-0.8,0.2-0.5,0.5l6.9,9.1-15-7.4C6.5,26.4,6.3,26.7,6.5,26.9L18.4,37.6,8,34.7C7.6,34.6,7.3,35.1,7.7,35.4l9.7,6L0.9,40c-0.3,0-0.4,0.4-0.1,0.5l15,5.7-10.8,1c-0.4,0-0.5,0.7,0,0.7l11.2,2.1-16,4.6c-0.3,0.1-0.2,0.5,0.1,0.5l16-0.1-9.7,4.9c-0.4,0.2-0.2,0.8,0.2,0.7L18,58.5,4.8,68.6c-0.2,0.2,0,0.5,0.2,0.4l15-5.9-7.3,8.1c-0.3,0.3,0.1,0.8,0.5,0.6l9.7-6-8.7,14.2c-0.1,0.2,0.2,0.5,0.4,0.3l8.5-7.8C30.4,50.4,44.9,34.7,54.8,26Z'%20fill='%23ffda00'/%3E%3C/g%3E%3C/svg%3E"
                  alt="KBR Logo"
                  class="header-logo">
@@ -1152,9 +1175,6 @@
                         </th>
                         <th style="width: 200px;" class="sortable" onclick="app.sortColumn('projectTask')" aria-sort="none">
                             Project Task <span id="sort-projectTask" class="sort-indicator">▾</span>
-                        </th>
-                        <th style="width: 110px;" class="sortable" onclick="app.sortColumn('costType')" aria-sort="none">
-                            Cost Type <span id="sort-costType" class="sort-indicator">▾</span>
                         </th>
                         <th style="width: 120px;" class="sortable" onclick="app.sortColumn('cbs')" aria-sort="none">
                             CBS <span id="sort-cbs" class="sort-indicator">▾</span>
@@ -1201,7 +1221,7 @@
                 </tbody>
                 <tfoot>
                     <tr class="totals-row">
-                        <td colspan="9" style="text-align: right;">Daily Totals:</td>
+                        <td colspan="8" style="text-align: right;">Daily Totals:</td>
                         <td id="totalMon">0</td>
                         <td id="totalTue">0</td>
                         <td id="totalWed">0</td>
@@ -1739,9 +1759,6 @@
                 <label for="editTemplateProjectTask">Project Task:</label>
                 <input type="text" id="editTemplateProjectTask" class="modal-input" placeholder="Project Task">
 
-                <label for="editTemplateCostType">Cost Type:</label>
-                <select id="editTemplateCostType" class="modal-input"></select>
-
                 <label for="editTemplateCbs">CBS:</label>
                 <select id="editTemplateCbs" class="modal-input"></select>
 
@@ -1837,6 +1854,29 @@
         </div>
     </div>
 
+    <!-- Cost Type Modal -->
+    <div class="modal" id="costTypeModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Cost Type Settings</h2>
+                <button class="close-btn" onclick="app.closeCostTypeModal()">&times;</button>
+            </div>
+            <div>
+                <p style="margin-bottom: 15px; color: #666;">Select the cost type that matches your MSD timesheet. This value will be used for all timesheet entries.</p>
+                <label for="costTypeSelect">Select your cost type:</label>
+                <select id="costTypeSelect" class="modal-input">
+                    <option value="">-- Select --</option>
+                    <option value="structural">Structural (L0700-Structural)</option>
+                    <option value="civil">Civil (L0700-Civil)</option>
+                </select>
+                <div style="margin-top: 15px;">
+                    <button class="btn" onclick="app.saveCostType()">Save</button>
+                    <button class="btn btn-secondary" onclick="app.closeCostTypeModal()">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Export Warning Modal -->
     <div class="modal" id="exportWarningModal">
         <div class="modal-content">
@@ -1864,13 +1904,15 @@
             dropdownOptions: {
                 role: ["Team Member"],
                 type: ["Work", "Paid Time Off", "Agile Accrual"],
-                costType: [
-                    "L0700-Structural"
-                ],
                 cbs: [
                     "A030700-Design Documents & Drawings",
                     "A020200-Project Management"
                 ]
+            },
+
+            costTypes: {
+                structural: { name: "Structural", code: "L0700-Structural" },
+                civil: { name: "Civil", code: "L0700-Civil" }
             },
 
             workLocations: {
@@ -1964,7 +2006,6 @@
                     fields: {
                         project: "QLD RESOURCE POOL",
                         projectTask: "00001.0001 General",
-                        costType: "L0700-Structural",
                         cbs: "A030700-Design Documents & Drawings",
                         role: "Team Member",
                         type: "Work",
@@ -1978,7 +2019,6 @@
                     fields: {
                         project: "Paid Time Off (1047)",
                         projectTask: "Annual Leave (1047)",
-                        costType: "L0700-Structural",
                         cbs: "",
                         role: "Team Member",
                         type: "Paid Time Off",
@@ -1992,7 +2032,6 @@
                     fields: {
                         project: "Public Holiday (1047)",
                         projectTask: "Public Holiday (1047)",
-                        costType: "L0700-Structural",
                         cbs: "",
                         role: "Team Member",
                         type: "Paid Time Off",
@@ -2006,7 +2045,6 @@
                     fields: {
                         project: "Paid Time Off",
                         projectTask: "Agile Time Off (1047)",
-                        costType: "L0700-Structural",
                         cbs: "",
                         role: "Team Member",
                         type: "Paid Time Off",
@@ -2036,11 +2074,6 @@
             },
 
             // Dropdown fields
-            costType: {
-                sortable: true,
-                type: 'text',
-                accessor: (row) => row.costType || ''
-            },
             cbs: {
                 sortable: true,
                 type: 'text',
@@ -2131,6 +2164,9 @@
 
                 // Initialize work location display
                 this.updateWorkLocationDisplay();
+
+                // Initialize cost type display
+                this.updateCostTypeDisplay();
             },
 
             getCurrentWeekStart() {
@@ -2239,7 +2275,6 @@
                     id: 'row-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9),
                     project: '',
                     projectTask: '',
-                    costType: '',
                     cbs: '',
                     role: '',
                     type: '',
@@ -2266,12 +2301,13 @@
                     // Always sync dropdownOptions from CONFIG to ensure new values are available
                     this.data.dropdownOptions = CONFIG.dropdownOptions;
 
-                    // Migration: Remove per-row workLocation (now a global setting)
+                    // Migration: Remove per-row workLocation and costType (now global settings)
                     if (this.data.weeks) {
                         Object.values(this.data.weeks).forEach(week => {
                             if (week.rows) {
                                 week.rows.forEach(row => {
                                     delete row.workLocation;
+                                    delete row.costType;
                                 });
                             }
                         });
@@ -2285,15 +2321,33 @@
             saveData() {
                 try {
                     localStorage.setItem('kbrTimesheet', JSON.stringify(this.data));
+                    this.updateSaveIndicator('saved');
                 } catch (error) {
                     console.error('Error saving data:', error);
+                    this.updateSaveIndicator('error');
                     alert('Error saving data. localStorage may be full. Please export your data as backup.');
                 }
             },
 
             debouncedSave() {
+                this.updateSaveIndicator('saving');
                 clearTimeout(this.saveTimeout);
                 this.saveTimeout = setTimeout(() => this.saveData(), 500);
+            },
+
+            updateSaveIndicator(status) {
+                const indicator = document.getElementById('saveIndicator');
+                if (!indicator) return;
+                indicator.classList.remove('saving', 'error');
+                if (status === 'saving') {
+                    indicator.textContent = 'Saving...';
+                    indicator.classList.add('saving');
+                } else if (status === 'error') {
+                    indicator.textContent = 'Save failed';
+                    indicator.classList.add('error');
+                } else {
+                    indicator.textContent = 'Saved';
+                }
             },
 
             // ==================== UI RENDERING ====================
@@ -2343,7 +2397,6 @@
                         </td>
                         <td><input type="text" value="${row.project}" data-field="project" data-row="${row.id}"></td>
                         <td><input type="text" value="${row.projectTask}" data-field="projectTask" data-row="${row.id}"></td>
-                        <td>${this.renderSelect('costType', row.costType, row.id)}</td>
                         <td>${this.renderSelect('cbs', row.cbs, row.id)}</td>
                         <td>${this.renderSelect('role', row.role, row.id)}</td>
                         <td>${this.renderSelect('type', row.type, row.id)}</td>
@@ -3053,6 +3106,71 @@
             },
 
             // ==================== VALIDATION ====================
+
+            // Export-only validation: checks required fields for rows with hours
+            validateRequiredFieldsForExport() {
+                const currentWeek = this.data.weeks[this.currentWeekStart];
+                const errors = [];
+                const dayNames = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+                const requiredFields = [
+                    { field: 'project', label: 'Project' },
+                    { field: 'projectTask', label: 'Project Task' },
+                    { field: 'cbs', label: 'CBS' },
+                    { field: 'role', label: 'Role' },
+                    { field: 'type', label: 'Type' },
+                    { field: 'description', label: 'Description' }
+                ];
+
+                currentWeek.rows.forEach((row, index) => {
+                    // Check if row has any hours
+                    const totalHours = dayNames.reduce((sum, day) =>
+                        sum + (parseFloat(row.hours[day]) || 0), 0);
+
+                    if (totalHours === 0) {
+                        return; // Skip rows with no hours
+                    }
+
+                    // Check each required field
+                    const missingFields = [];
+                    requiredFields.forEach(({ field, label }) => {
+                        const value = row[field];
+                        if (!value || value.trim() === '') {
+                            missingFields.push(label);
+
+                            // Highlight the field - handle both input and select elements
+                            const selector = `[data-field="${field}"][data-row="${row.id}"]`;
+                            const element = document.querySelector(selector);
+                            if (element) {
+                                element.classList.add('validation-error');
+                            }
+                        }
+                    });
+
+                    if (missingFields.length > 0) {
+                        errors.push({
+                            message: `Row ${index + 1}: Missing required fields: ${missingFields.join(', ')}`,
+                            rowId: row.id
+                        });
+                    }
+                });
+
+                // Update validation panel if there are errors
+                if (errors.length > 0) {
+                    const panel = document.getElementById('validationPanel');
+                    const list = document.getElementById('validationList');
+
+                    errors.forEach(issue => {
+                        const li = document.createElement('li');
+                        li.textContent = issue.message;
+                        list.appendChild(li);
+                    });
+
+                    panel.className = 'validation-panel has-errors';
+                }
+
+                return errors.length === 0;
+            },
+
             validateAndDisplay() {
                 const currentWeek = this.data.weeks[this.currentWeekStart];
                 const errors = [];
@@ -3124,7 +3242,12 @@
 
             // ==================== CSV EXPORT ====================
             exportCSV() {
-                if (!this.validateAndDisplay()) {
+                // Run existing validation first (clears previous styling)
+                const existingValid = this.validateAndDisplay();
+                // Then check required fields for rows with hours (appends to panel)
+                const requiredFieldsValid = this.validateRequiredFieldsForExport();
+
+                if (!existingValid || !requiredFieldsValid) {
                     alert('Please fix validation errors before exporting.');
                     return;
                 }
@@ -3167,7 +3290,7 @@
                             const dateStr = this.formatCSVDate(date);
                             const duration = Math.round(hours * 60); // Convert to minutes
 
-                            csv += `,,,"${CONFIG.csvDefaults.timeSource}","${row.project}","${row.projectTask}","${row.costType}","${row.cbs}","${row.role}","${row.type}","${CONFIG.csvDefaults.entryStatus}",${dateStr},${duration},"${row.description}","${row.description}","${this.getWorkLocationCode()}"\n`;
+                            csv += `,,,"${CONFIG.csvDefaults.timeSource}","${row.project}","${row.projectTask}","${this.getCostType()}","${row.cbs}","${row.role}","${row.type}","${CONFIG.csvDefaults.entryStatus}",${dateStr},${duration},"${row.description}","${row.description}","${this.getWorkLocationCode()}"\n`;
                         }
                     });
                 });
@@ -3210,7 +3333,7 @@
                 // Helper: Check if a row is completely empty
                 const isEmptyRow = (row) => {
                     const hasAnyHours = Object.values(row.hours || {}).some(h => h > 0);
-                    const hasAnyData = row.project || row.projectTask || row.costType ||
+                    const hasAnyData = row.project || row.projectTask ||
                                      row.cbs || row.role || row.type || row.description;
                     return !hasAnyHours && !hasAnyData;
                 };
@@ -3233,7 +3356,7 @@
                         const compactedRow = { id: row.id };
 
                         // Only include non-empty string fields
-                        const fields = ['project', 'projectTask', 'costType', 'cbs', 'role', 'type', 'description'];
+                        const fields = ['project', 'projectTask', 'cbs', 'role', 'type', 'description'];
                         fields.forEach(field => {
                             if (row[field] && row[field] !== '') {
                                 compactedRow[field] = row[field];
@@ -3282,7 +3405,7 @@
                 for (const [weekKey, week] of Object.entries(expanded.weeks)) {
                     week.rows = week.rows.map(row => {
                         // Ensure all string fields exist (default to empty string)
-                        const fields = ['project', 'projectTask', 'costType', 'cbs', 'role', 'type', 'description'];
+                        const fields = ['project', 'projectTask', 'cbs', 'role', 'type', 'description'];
                         fields.forEach(field => {
                             if (!row.hasOwnProperty(field)) {
                                 row[field] = '';
@@ -3414,6 +3537,46 @@
                 return CONFIG.workLocations[locationKey].code;
             },
 
+            // ==================== COST TYPE ====================
+            showCostTypeModal() {
+                const modal = document.getElementById('costTypeModal');
+                const select = document.getElementById('costTypeSelect');
+                select.value = this.data.preferences.costType || '';
+                modal.classList.add('active');
+            },
+
+            saveCostType() {
+                const select = document.getElementById('costTypeSelect');
+                const costTypeKey = select.value;
+                this.data.preferences.costType = costTypeKey;
+                this.updateCostTypeDisplay();
+                this.saveData();
+                this.closeCostTypeModal();
+            },
+
+            closeCostTypeModal() {
+                document.getElementById('costTypeModal').classList.remove('active');
+            },
+
+            updateCostTypeDisplay() {
+                const costTypeKey = this.data.preferences.costType;
+                if (costTypeKey && CONFIG.costTypes[costTypeKey]) {
+                    const costType = CONFIG.costTypes[costTypeKey];
+                    document.getElementById('costTypeValue').textContent =
+                        `${costType.name} (${costType.code})`;
+                } else {
+                    document.getElementById('costTypeValue').textContent = 'Not set';
+                }
+            },
+
+            getCostType() {
+                const costTypeKey = this.data.preferences.costType;
+                if (costTypeKey && CONFIG.costTypes[costTypeKey]) {
+                    return CONFIG.costTypes[costTypeKey].code;
+                }
+                return '';
+            },
+
             // ==================== TEMPLATES ====================
             showTemplates() {
                 const modal = document.getElementById('templateModal');
@@ -3512,7 +3675,6 @@
                         name: name,
                         project: row.project,
                         projectTask: row.projectTask,
-                        costType: row.costType,
                         cbs: row.cbs,
                         role: row.role,
                         type: row.type,
@@ -3541,7 +3703,6 @@
                 const fields = template.fields || template;
                 newRow.project = fields.project || '';
                 newRow.projectTask = fields.projectTask || '';
-                newRow.costType = fields.costType || '';
                 newRow.cbs = fields.cbs || '';
                 newRow.role = fields.role || '';
                 newRow.type = fields.type || '';
@@ -3580,7 +3741,6 @@
                     name: predefinedTemplate.name + ' (Copy)',
                     project: predefinedTemplate.fields.project,
                     projectTask: predefinedTemplate.fields.projectTask,
-                    costType: predefinedTemplate.fields.costType,
                     cbs: predefinedTemplate.fields.cbs,
                     role: predefinedTemplate.fields.role,
                     type: predefinedTemplate.fields.type,
@@ -3606,7 +3766,6 @@
                 document.getElementById('editTemplateName').value = template.name || '';
                 document.getElementById('editTemplateProject').value = template.project || '';
                 document.getElementById('editTemplateProjectTask').value = template.projectTask || '';
-                document.getElementById('editTemplateCostType').value = template.costType || '';
                 document.getElementById('editTemplateCbs').value = template.cbs || '';
                 document.getElementById('editTemplateRole').value = template.role || '';
                 document.getElementById('editTemplateType').value = template.type || '';
@@ -3619,13 +3778,6 @@
             },
 
             populateEditTemplateDropdowns() {
-                // Populate Cost Type dropdown
-                const costTypeSelect = document.getElementById('editTemplateCostType');
-                costTypeSelect.innerHTML = '<option value="">-- Select --</option>';
-                CONFIG.dropdownOptions.costType.forEach(option => {
-                    costTypeSelect.innerHTML += `<option value="${option}">${option}</option>`;
-                });
-
                 // Populate CBS dropdown (allow blank)
                 const cbsSelect = document.getElementById('editTemplateCbs');
                 cbsSelect.innerHTML = '<option value="">-- Select or leave blank --</option>';
@@ -3657,7 +3809,6 @@
                 const name = document.getElementById('editTemplateName').value.trim();
                 const project = document.getElementById('editTemplateProject').value.trim();
                 const projectTask = document.getElementById('editTemplateProjectTask').value.trim();
-                const costType = document.getElementById('editTemplateCostType').value;
                 const cbs = document.getElementById('editTemplateCbs').value;
                 const role = document.getElementById('editTemplateRole').value;
                 const type = document.getElementById('editTemplateType').value;
@@ -3674,7 +3825,6 @@
                     template.name = name;
                     template.project = project;
                     template.projectTask = projectTask;
-                    template.costType = costType;
                     template.cbs = cbs;
                     template.role = role;
                     template.type = type;
