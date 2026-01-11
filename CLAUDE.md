@@ -102,8 +102,11 @@ validationRules: [
 - **Ctrl+Delete**: Delete current row (when focused on a cell in that row)
 - **Ctrl+D**: Duplicate current row (copies all fields except hours, also available via Duplicate button)
 - **Arrow Keys**: Navigate between cells (like Excel)
+  - For hours inputs: Arrow keys always navigate to adjacent cells
+  - For text inputs: Left/Right only navigate when cursor is at start/end of value
 - **Tab**: Move to next field
 - **Shift+Tab**: Move to previous field
+- **Mouse Wheel**: When a hours input is focused and mouse is hovering over it, scroll up/down to increase/decrease value by 0.5 hours (capped at 0-12 hours)
 
 ## Duplicating Rows
 
