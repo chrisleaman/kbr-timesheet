@@ -1163,6 +1163,7 @@
             <button class="btn btn-secondary" onclick="app.showCopyFromWeek()">Copy from Other Week</button>
             <button class="btn btn-secondary" onclick="app.exportJSON()">Export Backup</button>
             <button class="btn btn-secondary" onclick="app.importJSON()">Import Backup</button>
+            <button class="btn btn-danger" onclick="app.showDeleteOldWeeksModal()">Delete old weeks</button>
         </div>
 
         <div class="table-container">
@@ -1893,6 +1894,37 @@
                 <div style="margin-top: 15px;">
                     <button class="btn btn-secondary" onclick="app.closeExportWarningModal()">Return to Timesheet</button>
                     <button class="btn" onclick="app.proceedWithExport()">Download CSV Anyway</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Old Weeks Modal -->
+    <div class="modal" id="deleteOldWeeksModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Delete Old Weeks</h2>
+                <button class="close-btn" onclick="app.closeDeleteOldWeeksModal()">&times;</button>
+            </div>
+            <div>
+                <p style="margin-bottom: 15px;">
+                    Delete timesheet data older than:
+                </p>
+                <div style="margin-bottom: 20px;">
+                    <input type="number" id="deleteWeeksThreshold" value="12" min="1" max="52"
+                           style="width: 80px; padding: 8px; font-size: 14px; border: 1px solid #ddd; border-radius: 4px;"
+                           oninput="app.updateDeleteOldWeeksPreview()">
+                    <span style="margin-left: 8px;">weeks</span>
+                </div>
+                <div id="deleteOldWeeksPreview" style="margin-bottom: 20px; max-height: 200px; overflow-y: auto;">
+                    <!-- Preview content will be populated by JavaScript -->
+                </div>
+                <p style="font-size: 12px; color: #666; margin-bottom: 20px;">
+                    Note: The current week will not be deleted.
+                </p>
+                <div style="margin-top: 15px;">
+                    <button class="btn btn-secondary" onclick="app.closeDeleteOldWeeksModal()">Cancel</button>
+                    <button class="btn btn-danger" id="confirmDeleteWeeksBtn" onclick="app.confirmDeleteOldWeeks()">Delete</button>
                 </div>
             </div>
         </div>
@@ -3316,6 +3348,107 @@
 
             closeExportWarningModal() {
                 document.getElementById('exportWarningModal').classList.remove('active');
+            },
+
+            // ==================== DELETE OLD WEEKS ====================
+            showDeleteOldWeeksModal() {
+                document.getElementById('deleteWeeksThreshold').value = 12;
+                this.updateDeleteOldWeeksPreview();
+                document.getElementById('deleteOldWeeksModal').classList.add('active');
+            },
+
+            closeDeleteOldWeeksModal() {
+                document.getElementById('deleteOldWeeksModal').classList.remove('active');
+            },
+
+            getWeeksToDelete(thresholdWeeks) {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0); // Normalize to midnight for consistent comparison
+                const cutoffDate = new Date(today);
+                cutoffDate.setDate(cutoffDate.getDate() - (thresholdWeeks * 7));
+
+                const weeksToDelete = [];
+                const weekKeys = Object.keys(this.data.weeks).sort();
+
+                for (const weekKey of weekKeys) {
+                    // Skip current week
+                    if (weekKey === this.currentWeekStart) {
+                        continue;
+                    }
+
+                    const weekDate = this.parseDate(weekKey);
+                    if (weekDate < cutoffDate) {
+                        const week = this.data.weeks[weekKey];
+                        const rowCount = week.rows ? week.rows.length : 0;
+                        weeksToDelete.push({
+                            key: weekKey,
+                            rowCount: rowCount
+                        });
+                    }
+                }
+
+                return weeksToDelete;
+            },
+
+            formatWeekRange(weekStartStr) {
+                const startDate = new Date(weekStartStr);
+                const endDate = new Date(startDate);
+                endDate.setDate(endDate.getDate() + 6);
+
+                const options = { month: 'short', day: 'numeric' };
+                const startFormatted = startDate.toLocaleDateString('en-US', options);
+                const endFormatted = endDate.toLocaleDateString('en-US', options);
+                const year = startDate.getFullYear();
+
+                return `${startFormatted} - ${endFormatted}, ${year}`;
+            },
+
+            updateDeleteOldWeeksPreview() {
+                const threshold = parseInt(document.getElementById('deleteWeeksThreshold').value) || 12;
+                const weeksToDelete = this.getWeeksToDelete(threshold);
+                const previewDiv = document.getElementById('deleteOldWeeksPreview');
+                const deleteBtn = document.getElementById('confirmDeleteWeeksBtn');
+
+                if (weeksToDelete.length === 0) {
+                    previewDiv.innerHTML = '<p style="color: #666; font-style: italic;">No weeks found older than ' + threshold + ' weeks.</p>';
+                    deleteBtn.textContent = 'Delete';
+                    deleteBtn.disabled = true;
+                    deleteBtn.style.opacity = '0.5';
+                    deleteBtn.style.cursor = 'not-allowed';
+                } else {
+                    let html = '<p style="margin-bottom: 10px;"><strong>The following ' + weeksToDelete.length + ' week(s) will be deleted:</strong></p>';
+                    html += '<ul style="list-style: disc; margin-left: 20px; line-height: 1.6;">';
+                    for (const week of weeksToDelete) {
+                        html += '<li>Week of ' + this.formatWeekRange(week.key) + ' (' + week.rowCount + ' row' + (week.rowCount !== 1 ? 's' : '') + ')</li>';
+                    }
+                    html += '</ul>';
+                    previewDiv.innerHTML = html;
+                    deleteBtn.textContent = 'Delete ' + weeksToDelete.length + ' Week' + (weeksToDelete.length !== 1 ? 's' : '');
+                    deleteBtn.disabled = false;
+                    deleteBtn.style.opacity = '1';
+                    deleteBtn.style.cursor = 'pointer';
+                }
+            },
+
+            confirmDeleteOldWeeks() {
+                const threshold = parseInt(document.getElementById('deleteWeeksThreshold').value) || 12;
+                const weeksToDelete = this.getWeeksToDelete(threshold);
+
+                if (weeksToDelete.length === 0) {
+                    return;
+                }
+
+                // Delete the weeks
+                for (const week of weeksToDelete) {
+                    delete this.data.weeks[week.key];
+                }
+
+                // Save and close
+                this.saveData();
+                this.closeDeleteOldWeeksModal();
+
+                // Show confirmation
+                alert('Deleted ' + weeksToDelete.length + ' week' + (weeksToDelete.length !== 1 ? 's' : '') + ' of data.');
             },
 
             formatCSVDate(date) {
