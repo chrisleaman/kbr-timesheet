@@ -911,6 +911,36 @@
             border-color: #0052a3;
         }
 
+        #hideEmptyRowsBtn {
+            background: #f0f0f0;
+            border: 1px solid #6c757d;
+            padding: 7px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            line-height: 1;
+            margin-left: 15px;
+            color: #6c757d;
+            font-weight: 500;
+            box-sizing: border-box;
+        }
+
+        #hideEmptyRowsBtn:hover {
+            background: #e9ecef;
+            border-color: #5a6268;
+        }
+
+        #hideEmptyRowsBtn.active {
+            background: #28a745;
+            border-color: #28a745;
+            color: white;
+        }
+
+        #hideEmptyRowsBtn.active:hover {
+            background: #218838;
+            border-color: #1e7e34;
+        }
+
         .sr-only {
             position: absolute;
             width: 1px;
@@ -1285,6 +1315,11 @@
                             title="Clear sort and restore original order"
                             style="display: none;">
                         Clear Sort ✕
+                    </button>
+                    <button id="hideEmptyRowsBtn" onclick="app.toggleHideEmptyRows()"
+                            aria-label="Hide rows with no hours"
+                            title="Hide rows with no hours">
+                        Hide Empty Rows
                     </button>
                     <input type="date" id="weekPicker" class="sr-only"
                            onchange="app.jumpToWeek(this.value)"
@@ -2432,6 +2467,7 @@
             currentWeekStart: null,
             selectedCell: null,
             saveTimeout: null,
+            hideEmptyRows: false,
 
             // ==================== INITIALIZATION ====================
             init() {
@@ -2651,6 +2687,7 @@
                 this.renderTable();
                 this.updateSortIndicators();    // Update visual indicators
                 this.updateClearSortButton();   // Show/hide Clear Sort button
+                this.updateHideEmptyRowsButton(); // Update Hide Empty Rows button state
                 this.updateTotals();
                 this.validateAndDisplay();
             },
@@ -2670,7 +2707,12 @@
                 const currentWeek = this.data.weeks[this.currentWeekStart];
                 if (!currentWeek || !currentWeek.rows) return;
 
-                currentWeek.rows.forEach((row, index) => {
+                // Filter rows if hideEmptyRows is enabled
+                const rowsToRender = this.hideEmptyRows
+                    ? currentWeek.rows.filter(row => this.rowHasHours(row))
+                    : currentWeek.rows;
+
+                rowsToRender.forEach((row, index) => {
                     const tr = document.createElement('tr');
                     tr.dataset.rowId = row.id;
                     tr.dataset.rowIndex = index;
@@ -3017,7 +3059,8 @@
 
                 rows.forEach((rowData, rowOffset) => {
                     const targetRowIndex = startRowIndex + rowOffset;
-                    if (targetRowIndex >= currentWeek.rows.length) {
+                    // Only create new rows if not hiding empty rows
+                    if (targetRowIndex >= currentWeek.rows.length && !this.hideEmptyRows) {
                         this.addRow();
                     }
 
@@ -3324,6 +3367,32 @@
                         clearBtn.style.display = 'none';
                     }
                 }
+            },
+
+            // ==================== HIDE EMPTY ROWS ====================
+            toggleHideEmptyRows() {
+                this.hideEmptyRows = !this.hideEmptyRows;
+                this.updateHideEmptyRowsButton();
+                this.render();
+            },
+
+            updateHideEmptyRowsButton() {
+                const btn = document.getElementById('hideEmptyRowsBtn');
+                if (btn) {
+                    if (this.hideEmptyRows) {
+                        btn.classList.add('active');
+                        btn.textContent = 'Showing Non-Empty ✓';
+                        btn.title = 'Click to show all rows';
+                    } else {
+                        btn.classList.remove('active');
+                        btn.textContent = 'Hide Empty Rows';
+                        btn.title = 'Hide rows with no hours';
+                    }
+                }
+            },
+
+            rowHasHours(row) {
+                return Object.values(row.hours).some(h => parseFloat(h) > 0);
             },
 
             // ==================== WEEK NAVIGATION ====================
