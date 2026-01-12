@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KBR Timesheet Helper</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%230066cc'/%3E%3Ccircle cx='50' cy='50' r='40' fill='white'/%3E%3Cpath d='M50 20 L50 50 L70 50' stroke='%230066cc' stroke-width='4' stroke-linecap='round' fill='none'/%3E%3Ccircle cx='50' cy='50' r='3' fill='%230066cc'/%3E%3C/svg%3E">
+    <!-- Fuzzy Search Library -->
+    <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -1298,6 +1300,7 @@
         <div class="controls">
             <button class="btn" onclick="app.addRow()">+ Add Row</button>
             <button class="btn" onclick="app.showTemplates()">Add Template</button>
+            <button class="btn" onclick="app.showAddPastRow()">Add Past Row</button>
             <button class="btn" onclick="app.exportCSV()">Export CSV</button>
             <button class="btn btn-secondary" onclick="app.showCopyFromWeek()">Copy from Other Week</button>
             <button class="btn btn-secondary" onclick="app.exportJSON()">Export Backup</button>
@@ -1946,6 +1949,35 @@
                     <div class="week-rows-list" id="weekRowsList"></div>
 
                     <button class="btn" onclick="app.copySelectedRows()">Copy Selected Rows</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Past Row Modal -->
+    <div class="modal" id="addPastRowModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add Past Row</h2>
+                <button class="close-btn" onclick="app.closeAddPastRowModal()">&times;</button>
+            </div>
+            <div>
+                <label for="pastRowSearch">Search past rows:</label>
+                <input type="text"
+                       id="pastRowSearch"
+                       class="modal-input"
+                       placeholder="Type to search project, task, or description..."
+                       oninput="app.filterPastRows()">
+
+                <div id="pastRowsContainer">
+                    <div style="margin: 0 0 15px 0; padding: 0;">
+                        <button class="btn btn-secondary" onclick="app.toggleSelectAllPastRows()">Select All</button>
+                        <span id="pastRowsCount" style="margin-left: 10px; color: #666;"></span>
+                    </div>
+
+                    <div class="week-rows-list" id="pastRowsList"></div>
+
+                    <button class="btn" onclick="app.addSelectedPastRows()">Add Selected Rows</button>
                 </div>
             </div>
         </div>
@@ -4626,6 +4658,152 @@
                 this.closeCopyFromWeekModal();
 
                 alert(`Successfully copied ${checkboxes.length} row(s) to current week`);
+            },
+
+            // ==================== ADD PAST ROW (FUZZY SEARCH) ====================
+            allPastRows: [],
+            filteredPastRows: [],
+            pastRowSearchTimeout: null,
+
+            showAddPastRow() {
+                const modal = document.getElementById('addPastRowModal');
+                this.loadAllUniqueRows();
+                document.getElementById('pastRowSearch').value = '';
+                modal.classList.add('active');
+                // Focus search input
+                setTimeout(() => {
+                    document.getElementById('pastRowSearch').focus();
+                }, 100);
+            },
+
+            closeAddPastRowModal() {
+                document.getElementById('addPastRowModal').classList.remove('active');
+            },
+
+            loadAllUniqueRows() {
+                // Aggregate all rows from all weeks
+                const allRows = [];
+                Object.keys(this.data.weeks).forEach(weekStart => {
+                    const week = this.data.weeks[weekStart];
+                    if (week.rows) {
+                        week.rows.forEach(row => allRows.push(row));
+                    }
+                });
+
+                // Deduplicate by project+projectTask+description combo
+                const uniqueMap = new Map();
+                allRows.forEach(row => {
+                    const key = `${(row.project || '').toLowerCase()}|${(row.projectTask || '').toLowerCase()}|${(row.description || '').toLowerCase()}`;
+                    // Only include rows that have at least a project
+                    if (!uniqueMap.has(key) && row.project) {
+                        uniqueMap.set(key, {
+                            project: row.project || '',
+                            projectTask: row.projectTask || '',
+                            cbs: row.cbs || '',
+                            role: row.role || '',
+                            type: row.type || '',
+                            description: row.description || ''
+                        });
+                    }
+                });
+
+                // Store for filtering
+                this.allPastRows = Array.from(uniqueMap.values());
+                this.filteredPastRows = [...this.allPastRows];
+
+                // Initial render
+                this.renderPastRows();
+            },
+
+            filterPastRows() {
+                const query = document.getElementById('pastRowSearch').value.trim();
+
+                // Debounce search (300ms)
+                clearTimeout(this.pastRowSearchTimeout);
+                this.pastRowSearchTimeout = setTimeout(() => {
+                    if (!query) {
+                        // No search - show all
+                        this.filteredPastRows = [...this.allPastRows];
+                    } else {
+                        // Fuzzy search using Fuse.js
+                        const fuse = new Fuse(this.allPastRows, {
+                            keys: ['project', 'projectTask', 'description'],
+                            threshold: 0.4, // 0.0 = exact, 1.0 = match anything
+                            ignoreLocation: true
+                        });
+                        this.filteredPastRows = fuse.search(query).map(result => result.item);
+                    }
+
+                    this.renderPastRows();
+                }, 300);
+            },
+
+            renderPastRows() {
+                const list = document.getElementById('pastRowsList');
+                const countSpan = document.getElementById('pastRowsCount');
+
+                if (this.filteredPastRows.length === 0) {
+                    list.innerHTML = '<p style="padding: 20px; text-align: center;">No matching rows found</p>';
+                    countSpan.textContent = '';
+                    return;
+                }
+
+                countSpan.textContent = `${this.filteredPastRows.length} row${this.filteredPastRows.length !== 1 ? 's' : ''} found`;
+
+                list.innerHTML = '';
+                this.filteredPastRows.forEach((row, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'week-row-item';
+                    item.innerHTML = `
+                        <input type="checkbox" class="past-row-checkbox" data-row-index="${index}">
+                        <div class="week-row-details">
+                            <strong>${row.project || '(No project)'}</strong>
+                            <small>Task: ${row.projectTask || 'N/A'} | Desc: ${row.description || 'N/A'}</small>
+                        </div>
+                    `;
+                    list.appendChild(item);
+                });
+            },
+
+            toggleSelectAllPastRows() {
+                const checkboxes = document.querySelectorAll('.past-row-checkbox');
+                const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+                checkboxes.forEach(cb => cb.checked = !allChecked);
+            },
+
+            addSelectedPastRows() {
+                const checkboxes = document.querySelectorAll('.past-row-checkbox:checked');
+                if (checkboxes.length === 0) {
+                    alert('Please select at least one row to add');
+                    return;
+                }
+
+                const currentWeek = this.data.weeks[this.currentWeekStart];
+
+                checkboxes.forEach(checkbox => {
+                    const rowIndex = parseInt(checkbox.dataset.rowIndex);
+                    const sourceRow = this.filteredPastRows[rowIndex];
+
+                    if (sourceRow) {
+                        // Create new row with same fields but zero hours
+                        const newRow = this.createEmptyRow();
+                        newRow.project = sourceRow.project;
+                        newRow.projectTask = sourceRow.projectTask;
+                        newRow.cbs = sourceRow.cbs;
+                        newRow.role = sourceRow.role;
+                        newRow.type = sourceRow.type;
+                        newRow.description = sourceRow.description;
+
+                        currentWeek.rows.push(newRow);
+                        currentWeek.sortState.originalOrder.push(newRow.id);
+                    }
+                });
+
+                this.render();
+                this.saveData();
+                this.closeAddPastRowModal();
+
+                alert(`Added ${checkboxes.length} row(s) to current week`);
             }
         };
 
