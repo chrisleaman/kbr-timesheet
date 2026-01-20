@@ -1063,31 +1063,79 @@
             margin: 5px 0;
         }
 
-        .step-image-placeholder {
+        .step-image {
             grid-row: 1 / -1;
             grid-column: 3;
-            background: #f5f5f5;
-            border: 2px dashed #ddd;
-            border-radius: 4px;
-            padding: 20px;
-            text-align: center;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 150px;
         }
 
-        .placeholder-icon {
-            font-size: 48px;
-            margin-bottom: 10px;
-            opacity: 0.5;
+        .step-image img {
+            max-width: 100%;
+            max-height: 200px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
         }
 
-        .placeholder-text {
-            font-size: 12px;
-            color: #999;
-            font-style: italic;
+        .step-image img:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Lightbox */
+        .lightbox {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 10000;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lightbox.active {
+            display: flex;
+        }
+
+        .lightbox img {
+            max-width: 95%;
+            max-height: 95%;
+            object-fit: contain;
+            border-radius: 4px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: white;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+
+        .lightbox-close:hover {
+            opacity: 1;
+        }
+
+        .lightbox-hint {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 14px;
+            opacity: 0.6;
         }
 
         /* Tip Callout */
@@ -1254,9 +1302,13 @@
                 grid-template-rows: auto auto auto;
             }
 
-            .step-image-placeholder {
+            .step-image {
                 grid-row: 3;
                 grid-column: 1 / -1;
+            }
+
+            .step-image img {
+                max-height: 150px;
             }
 
             .faq-index ul {
@@ -1464,16 +1516,15 @@
                             <div class="step-number">1</div>
                             <div>
                                 <h3>Export Your Timesheet CSV</h3>
-                                <p>Click the "Export CSV" button at the top of your timesheet to download your weekly hours.</p>
+                                <p>Click the "Export CSV" button at the top of your timesheet to create a CSV file of your weekly hours.</p>
                                 <ul>
                                     <li>Ensure all validation errors are resolved before exporting</li>
                                     <li>CSV file will be named: <code>Timesheet_YYYY-MM-DD.csv</code></li>
-                                    <li>File will download to your default downloads folder</li>
+                                    <li>File will download to your PC's default downloads folder</li>
                                 </ul>
                             </div>
-                            <div class="step-image-placeholder">
-                                <div class="placeholder-icon">🖼️</div>
-                                <div class="placeholder-text">Screenshot: Export CSV button location</div>
+                            <div class="step-image">
+                                <img src="img/step-1-export.png" alt="Export CSV button location" onclick="openLightbox(this)">
                             </div>
                         </div>
 
@@ -1482,16 +1533,13 @@
                             <div class="step-number">2</div>
                             <div>
                                 <h3>Open Microsoft Dynamics</h3>
-                                <p>Log into your Microsoft Dynamics instance and navigate to the timesheet module.</p>
+                                <p>Log into your Microsoft Dynamics timesheet entry page</p>
                                 <ul>
-                                    <li>Use your company credentials to access MSD</li>
-                                    <li>Navigate to Project Management → Timesheets</li>
-                                    <li>Ensure you have import permissions for your role</li>
+                                    <li>Navigate to MSD Timesheet, this can be accessed from the KBR Sharepoint</li>
                                 </ul>
                             </div>
-                            <div class="step-image-placeholder">
-                                <div class="placeholder-icon">🖼️</div>
-                                <div class="placeholder-text">Screenshot: MSD navigation menu</div>
+                            <div class="step-image">
+                                <img src="img/step-2-portal.png" alt="KBR Sharepoint with Timesheet Dynamics" onclick="openLightbox(this)">
                             </div>
                         </div>
 
@@ -1502,14 +1550,12 @@
                                 <h3>Access Import Wizard</h3>
                                 <p>Locate and open the CSV import functionality in Microsoft Dynamics.</p>
                                 <ul>
-                                    <li>Look for "Import" or "Upload Timesheet" button</li>
-                                    <li>Select "Import from CSV" or "Import from File" option</li>
+                                    <li>Look for "Import from CSV" button</li>
                                     <li>The import wizard should open in a new dialog</li>
                                 </ul>
                             </div>
-                            <div class="step-image-placeholder">
-                                <div class="placeholder-icon">🖼️</div>
-                                <div class="placeholder-text">Screenshot: Import wizard access point</div>
+                            <div class="step-image">
+                                <img src="img/step-3-import.png" alt="Import from CSV option in Microsoft Dynamics" onclick="openLightbox(this)">
                             </div>
                         </div>
 
@@ -1524,11 +1570,11 @@
                                     <li>Navigate to your downloads folder</li>
                                     <li>Select the <code>Timesheet_YYYY-MM-DD.csv</code> file</li>
                                     <li>Verify the file name appears in the import dialog</li>
+                                    <li>Click "Next" followed by "Review Mapping" buttons</li>
                                 </ul>
                             </div>
-                            <div class="step-image-placeholder">
-                                <div class="placeholder-icon">🖼️</div>
-                                <div class="placeholder-text">Screenshot: File selection dialog</div>
+                            <div class="step-image">
+                                <img src="img/step-4-upload.png" alt="CSV file upload dialog" onclick="openLightbox(this)">
                             </div>
                         </div>
 
@@ -1539,15 +1585,16 @@
                                 <h3>Map CSV Columns</h3>
                                 <p>Verify that CSV columns are correctly mapped to MSD fields.</p>
                                 <ul>
+                                    <li>Change "Name Your Data Map" to "Excel Import" using the drop-down menu</li>
                                     <li>Check that Project, Task, Date, and Duration fields are mapped</li>
                                     <li>Ensure Cost Type, CBS, and Role fields align correctly</li>
                                     <li>Most systems auto-detect standard CSV headers</li>
                                     <li>Adjust mappings if necessary</li>
+                                    <li>Click "Finish Import" button</li>
                                 </ul>
                             </div>
-                            <div class="step-image-placeholder">
-                                <div class="placeholder-icon">🖼️</div>
-                                <div class="placeholder-text">Screenshot: Column mapping screen</div>
+                            <div class="step-image">
+                                <img src="img/step-5-mapping.png" alt="CSV column mapping screen" onclick="openLightbox(this)">
                             </div>
                         </div>
 
@@ -1555,56 +1602,17 @@
                         <div class="step-card">
                             <div class="step-number">6</div>
                             <div>
-                                <h3>Validate Import Data</h3>
-                                <p>Review the import preview and check for any validation errors.</p>
+                                <h3>Validate Imported Data</h3>
+                                <p>Review the imported timesheet and check for any errors.</p>
                                 <ul>
-                                    <li>Check the row count matches your expectations</li>
-                                    <li>Verify project codes are recognized by MSD</li>
-                                    <li>Review any warning or error messages</li>
-                                    <li>Ensure date formats are correct (DD/MM/YYYY)</li>
+                                    <li>Close the import wizard and refresh the page after a few minutes.</li>
+                                    <li>Verify imported timesheet contents match what you expected to be there</li>
+                                    <li>Confirm daily and weekly hours totals are correct</li>
+                                    <li>Submit timesheet as usual if it is all correct</li>
                                 </ul>
                             </div>
-                            <div class="step-image-placeholder">
-                                <div class="placeholder-icon">🖼️</div>
-                                <div class="placeholder-text">Screenshot: Validation summary screen</div>
-                            </div>
-                        </div>
-
-                        <!-- Step 7 -->
-                        <div class="step-card">
-                            <div class="step-number">7</div>
-                            <div>
-                                <h3>Confirm and Import</h3>
-                                <p>Finalize the import process and submit your timesheet data.</p>
-                                <ul>
-                                    <li>Review the final summary of hours to be imported</li>
-                                    <li>Click "Import" or "Submit" button</li>
-                                    <li>Wait for the import process to complete</li>
-                                    <li>Note any confirmation or reference number</li>
-                                </ul>
-                            </div>
-                            <div class="step-image-placeholder">
-                                <div class="placeholder-icon">🖼️</div>
-                                <div class="placeholder-text">Screenshot: Import confirmation dialog</div>
-                            </div>
-                        </div>
-
-                        <!-- Step 8 -->
-                        <div class="step-card">
-                            <div class="step-number">8</div>
-                            <div>
-                                <h3>Verify Import Success</h3>
-                                <p>Check that your hours have been successfully imported into Microsoft Dynamics.</p>
-                                <ul>
-                                    <li>Navigate to your timesheet view in MSD</li>
-                                    <li>Verify the correct week's hours are showing</li>
-                                    <li>Check that all projects and tasks imported correctly</li>
-                                    <li>Confirm total hours match your weekly total</li>
-                                </ul>
-                            </div>
-                            <div class="step-image-placeholder">
-                                <div class="placeholder-icon">🖼️</div>
-                                <div class="placeholder-text">Screenshot: Imported timesheet in MSD</div>
+                            <div class="step-image">
+                                <img src="img/step-6-verify.png" alt="Imported timesheet entries in Microsoft Dynamics" onclick="openLightbox(this)">
                             </div>
                         </div>
 
@@ -1649,36 +1657,36 @@
                         <div class="faq-item" id="faq-csv-format" data-keywords="csv format delimiter comma excel">
                             <div class="faq-question">
                                 <span class="faq-badge error">Error</span>
-                                Why is my CSV rejected with "Invalid delimiter" error?
+                                Export vailidation errors (Agile Accrual)
                             </div>
                             <div class="faq-answer">
-                                <p><strong>Cause:</strong> The CSV file may have been opened and saved in Excel, which can change the delimiter format or encoding.</p>
-                                <p><strong>Fix:</strong> Re-export the CSV directly from this timesheet tool without opening it in Excel first.</p>
-                                <p><strong>Prevention:</strong> If you must view the CSV, use a text editor (Notepad, VS Code) or import directly into MSD without modifications.</p>
+                                <p><strong>Cause:</strong> The day with agile accrual entered does not have enough regular working hours</p>
+                                <p><strong>Fix:</strong> In order to enter agile accrual for a given day, there must be enough regular work hours for the day i.e. 40 hours/week need 8 hours/day</p>
+                                <p><strong>Prevention:</strong> Ensure that regular worked hours are entered before exporting.</p>
                             </div>
                         </div>
 
                         <div class="faq-item" id="faq-empty-csv" data-keywords="csv empty no data blank">
                             <div class="faq-question">
                                 <span class="faq-badge error">Error</span>
-                                CSV file is empty or has no data
+                                Validation Issues (CBS)
                             </div>
                             <div class="faq-answer">
-                                <p><strong>Cause:</strong> No hours were entered for any day, or all rows have zero hours.</p>
-                                <p><strong>Fix:</strong> Enter hours for at least one day on at least one row before exporting.</p>
-                                <p><strong>Prevention:</strong> Check the "Daily Totals" row before exporting to ensure you have hours entered.</p>
+                                <p><strong>Cause:</strong> No CBS was entered for project</p>
+                                <p><strong>Fix:</strong> Enter CBS from drop-down menu</p>
+                                <p><strong>Prevention:</strong> Enter a CBS for all project work, this does not need to be done for overheads</p>
                             </div>
                         </div>
 
                         <div class="faq-item" id="faq-special-chars" data-keywords="special characters garbled encoding utf8">
                             <div class="faq-question">
                                 <span class="faq-badge warning">Warning</span>
-                                Special characters appear garbled in CSV
+                                Validation Issues (Description)
                             </div>
                             <div class="faq-answer">
-                                <p><strong>Cause:</strong> MSD may not support special characters in project names or descriptions, or there's an encoding mismatch.</p>
-                                <p><strong>Fix:</strong> Avoid using special characters (é, ñ, etc.) in descriptions. Use plain ASCII characters only.</p>
-                                <p><strong>Prevention:</strong> Stick to standard alphanumeric characters and basic punctuation in all text fields.</p>
+                                <p><strong>Cause:</strong> No description was entered for time entry</p>
+                                <p><strong>Fix:</strong> Add description to time entry</p>
+                                <p><strong>Prevention:</strong> Enter descriptions for each project row</p>
                             </div>
                         </div>
 
@@ -1706,57 +1714,20 @@
                                 Import wizard doesn't recognize CSV format
                             </div>
                             <div class="faq-answer">
-                                <p><strong>Cause:</strong> File extension may be wrong, or CSV format doesn't match MSD expectations.</p>
+                                <p><strong>Cause:</strong> File extension may be wrong or incorrect wizard was opened, or CSV format doesn't match MSD expectations.</p>
                                 <p><strong>Fix:</strong> Ensure file has <code>.csv</code> extension. Try re-exporting from this tool.</p>
-                                <p><strong>Prevention:</strong> Always use the "Export CSV" button in this tool - never manually create or modify the CSV file.</p>
+                                <p><strong>Prevention:</strong> Confirm that the import CSV function is being used within MSD.</p>
                             </div>
                         </div>
 
                         <div class="faq-item" id="faq-missing-hours" data-keywords="hours zero blank missing not showing imported">
                             <div class="faq-question">
                                 <span class="faq-badge error">Error</span>
-                                Hours are imported as zero/blank in MSD
+                                Project not entering into MSD despite the timesheet entry being correct
                             </div>
                             <div class="faq-answer">
-                                <p><strong>Cause:</strong> Duration column may not be mapped correctly, or MSD expects a different time format.</p>
-                                <p><strong>Fix:</strong> Check column mapping in import wizard. Ensure "Duration" field is mapped correctly (should be in minutes).</p>
-                                <p><strong>Prevention:</strong> This tool exports hours in minutes (e.g., 7.5 hrs = 450 minutes) which is the MSD standard format.</p>
-                            </div>
-                        </div>
-
-                        <div class="faq-item" id="faq-project-codes" data-keywords="project codes not found invalid missing">
-                            <div class="faq-question">
-                                <span class="faq-badge error">Error</span>
-                                Project codes not found in MSD
-                            </div>
-                            <div class="faq-answer">
-                                <p><strong>Cause:</strong> Project name doesn't exactly match what's in Microsoft Dynamics, or project is inactive.</p>
-                                <p><strong>Fix:</strong> Verify project names match exactly (including spaces, capitalization). Check that projects are active in MSD.</p>
-                                <p><strong>Prevention:</strong> Copy/paste project names from MSD when possible. Use Templates feature to save correct project names.</p>
-                            </div>
-                        </div>
-
-                        <div class="faq-item" id="faq-cbs-rejected" data-keywords="cbs rejected invalid cost breakdown structure">
-                            <div class="faq-question">
-                                <span class="faq-badge error">Error</span>
-                                CBS values rejected during import
-                            </div>
-                            <div class="faq-answer">
-                                <p><strong>Cause:</strong> CBS (Cost Breakdown Structure) codes don't match your organization's MSD configuration.</p>
-                                <p><strong>Fix:</strong> Update CBS dropdown values in this tool to match your company's approved CBS codes. Contact your project admin for the correct list.</p>
-                                <p><strong>Prevention:</strong> Some projects (like Paid Time Off) allow blank CBS. Check with your PM team for which CBS codes to use.</p>
-                            </div>
-                        </div>
-
-                        <div class="faq-item" id="faq-work-location" data-keywords="work location invalid codes">
-                            <div class="faq-question">
-                                <span class="faq-badge warning">Warning</span>
-                                Work location codes invalid
-                            </div>
-                            <div class="faq-answer">
-                                <p><strong>Cause:</strong> Work location code doesn't match approved locations in MSD.</p>
-                                <p><strong>Fix:</strong> Verify the work location dropdown has the correct code for your office/location.</p>
-                                <p><strong>Prevention:</strong> This is typically a company-wide code that rarely changes. Contact IT or HR if you need the correct code.</p>
+                                <p><strong>Cause:</strong> MSD can cause an error if two identical project tasks exist in different projects</p>
+                                <p><strong>Fix:</strong> Instead of using "Project Task" use the "Project Task ID", the mapping should deal with this without any further changes.</p>
                             </div>
                         </div>
 
@@ -1778,18 +1749,6 @@
                             </div>
                         </div>
 
-                        <div class="faq-item" id="faq-totals-mismatch" data-keywords="weekly total daily mismatch calculation">
-                            <div class="faq-question">
-                                <span class="faq-badge info">Info</span>
-                                Weekly total doesn't match daily totals
-                            </div>
-                            <div class="faq-answer">
-                                <p><strong>Cause:</strong> This should not happen - it indicates a calculation error.</p>
-                                <p><strong>Fix:</strong> Try refreshing the page. If the issue persists, export your data as backup (JSON) and re-import.</p>
-                                <p><strong>Prevention:</strong> This tool automatically calculates totals. If you see this error, please report it.</p>
-                            </div>
-                        </div>
-
                         <div class="faq-item" id="faq-category-wrong" data-keywords="category classification incorrect bd o t p">
                             <div class="faq-question">
                                 <span class="faq-badge info">Info</span>
@@ -1798,7 +1757,6 @@
                             <div class="faq-answer">
                                 <p><strong>Cause:</strong> Category is auto-determined by project name keywords. Some projects may not match expected patterns.</p>
                                 <p><strong>Fix:</strong> Category is for display only and doesn't affect CSV export. The correct data is still exported to MSD.</p>
-                                <p><strong>Prevention:</strong> Categories: BD (Business Development), O (Overheads/Resource Pool), T (Time Off), P (Productive work).</p>
                             </div>
                         </div>
 
@@ -1814,7 +1772,7 @@
                                 How do I import multiple weeks at once?
                             </div>
                             <div class="faq-answer">
-                                <p><strong>Answer:</strong> Export each week separately and import them one at a time into MSD. Each CSV file represents one week.</p>
+                                <p><strong>Answer:</strong> Unfortunately there isn't a way to do this. Export each week separately and import them one at a time into MSD. Each CSV file represents one week.</p>
                                 <p>You can use the week navigation buttons to move between weeks and export each one individually.</p>
                             </div>
                         </div>
@@ -1826,7 +1784,6 @@
                             </div>
                             <div class="faq-answer">
                                 <p><strong>Answer:</strong> Yes, you can edit hours in Microsoft Dynamics after import. However, changes made in MSD won't sync back to this tool.</p>
-                                <p>It's recommended to make corrections in this tool and re-export if possible, to keep your local backup consistent.</p>
                             </div>
                         </div>
 
@@ -1848,7 +1805,7 @@
                             </div>
                             <div class="faq-answer">
                                 <p><strong>Answer:</strong> Use the "Public Holiday" template (Templates → Public Holiday) which pre-fills the correct project and type.</p>
-                                <p>Typically: Project = "Public Holiday (1047)", Type = "Paid Time Off", with 7.5 hours (or your standard day length).</p>
+                                <p>Typically: Project = "Public Holiday (1047)", Type = "Paid Time Off", with 8 hours then add a description for the specific holiday.</p>
                             </div>
                         </div>
 
@@ -1869,6 +1826,7 @@
                 </div>
             </details>
 
+
             <!-- Additional Questions & Feedback -->
             <details class="doc-accordion">
                 <summary class="doc-accordion-header">
@@ -1887,6 +1845,8 @@
             </details>
 
         </div>
+
+
     </div>
 
     <!-- Template Modal -->
@@ -2179,6 +2139,13 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- Lightbox for Documentation Images -->
+    <div id="lightbox" class="lightbox" onclick="closeLightbox()">
+        <span class="lightbox-close">&times;</span>
+        <img id="lightbox-img" src="" alt="Enlarged screenshot">
+        <div class="lightbox-hint">Click anywhere or press Esc to close</div>
     </div>
 
     <script>
@@ -4875,6 +4842,29 @@
                 alert(`Added ${checkboxes.length} row(s) to current week`);
             }
         };
+
+        // ==================== LIGHTBOX FUNCTIONALITY ====================
+        function openLightbox(imgElement) {
+            const lightbox = document.getElementById('lightbox');
+            const lightboxImg = document.getElementById('lightbox-img');
+            lightboxImg.src = imgElement.src;
+            lightboxImg.alt = imgElement.alt;
+            lightbox.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeLightbox() {
+            const lightbox = document.getElementById('lightbox');
+            lightbox.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // Close lightbox on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeLightbox();
+            }
+        });
 
         // Initialize app when page loads
         window.addEventListener('DOMContentLoaded', () => {
