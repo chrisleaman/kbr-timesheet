@@ -953,6 +953,99 @@
             border-width: 0;
         }
 
+        /* Button Groups */
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .button-group-divider {
+            width: 1px;
+            height: 24px;
+            background-color: #ddd;
+            margin: 0 5px;
+        }
+
+        /* Dropdown Button */
+        .dropdown-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-btn {
+            padding: 10px 20px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .dropdown-btn:hover {
+            background-color: #c82333;
+        }
+
+        .dropdown-btn::after {
+            content: '▼';
+            font-size: 10px;
+        }
+
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background-color: white;
+            min-width: 200px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border-radius: 4px;
+            z-index: 100;
+            margin-top: 4px;
+            border: 1px solid #ddd;
+        }
+
+        .dropdown-container:hover .dropdown-menu,
+        .dropdown-container:focus-within .dropdown-menu {
+            display: block;
+        }
+
+        .dropdown-menu button {
+            display: block;
+            width: 100%;
+            padding: 10px 15px;
+            text-align: left;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .dropdown-menu button:hover {
+            background-color: #f8f9fa;
+        }
+
+        .dropdown-menu button.dropdown-danger {
+            color: #dc3545;
+        }
+
+        .dropdown-menu button.dropdown-danger:hover {
+            background-color: #f8d7da;
+        }
+
+        .dropdown-menu hr {
+            margin: 5px 0;
+            border: none;
+            border-top: 1px solid #eee;
+        }
+
         /* ==================== DOCUMENTATION SECTIONS ==================== */
 
         .documentation-section {
@@ -1385,14 +1478,41 @@
         </header>
 
         <div class="controls">
-            <button class="btn" onclick="app.addRow()">+ Add Row</button>
-            <button class="btn" onclick="app.showTemplates()">Add Template</button>
-            <button class="btn" onclick="app.showAddPastRow()">Add Past Row</button>
-            <button class="btn" onclick="app.exportCSV()">Export CSV</button>
-            <button class="btn btn-secondary" onclick="app.showCopyFromWeek()">Copy from Other Week</button>
-            <button class="btn btn-secondary" onclick="app.exportJSON()">Export Backup</button>
-            <button class="btn btn-secondary" onclick="app.importJSON()">Import Backup</button>
-            <button class="btn btn-danger" onclick="app.showDeleteOldWeeksModal()">Delete old weeks</button>
+            <!-- Row Actions -->
+            <div class="button-group">
+                <button class="btn" onclick="app.addRow()">+ Add Row</button>
+                <button class="btn" onclick="app.showTemplates()">Add Template</button>
+                <button class="btn" onclick="app.showAddPastRow()">Add Past Row</button>
+                <button class="btn btn-secondary" onclick="app.showCopyFromWeek()">Copy from Other Week</button>
+            </div>
+
+            <div class="button-group-divider"></div>
+
+            <!-- Export -->
+            <div class="button-group">
+                <button class="btn" onclick="app.exportCSV()">Export CSV</button>
+            </div>
+
+            <div class="button-group-divider"></div>
+
+            <!-- Backup -->
+            <div class="button-group">
+                <button class="btn btn-secondary" onclick="app.exportJSON()">Export Backup</button>
+                <button class="btn btn-secondary" onclick="app.importJSON()">Import Backup</button>
+            </div>
+
+            <div class="button-group-divider"></div>
+
+            <!-- Cleanup Actions (Dropdown) -->
+            <div class="dropdown-container">
+                <button class="dropdown-btn" type="button">Cleanup</button>
+                <div class="dropdown-menu">
+                    <button onclick="app.showDeleteEmptyRowsModal()">Delete Empty Rows</button>
+                    <button onclick="app.showClearAllHoursModal()">Clear All Hours</button>
+                    <hr>
+                    <button class="dropdown-danger" onclick="app.showDeleteOldWeeksModal()">Delete Old Weeks</button>
+                </div>
+            </div>
         </div>
 
         <div class="table-container">
@@ -2091,6 +2211,47 @@
                 <div style="margin-top: 15px;">
                     <button class="btn btn-secondary" onclick="app.closeDeleteOldWeeksModal()">Cancel</button>
                     <button class="btn btn-danger" id="confirmDeleteWeeksBtn" onclick="app.confirmDeleteOldWeeks()">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Empty Rows Modal -->
+    <div class="modal" id="deleteEmptyRowsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Delete Empty Rows</h2>
+                <button class="close-btn" onclick="app.closeDeleteEmptyRowsModal()">&times;</button>
+            </div>
+            <div>
+                <p style="margin-bottom: 15px;" id="deleteEmptyRowsMessage">
+                    <!-- Message will be populated by JavaScript -->
+                </p>
+                <div style="margin-top: 15px;">
+                    <button class="btn btn-secondary" onclick="app.closeDeleteEmptyRowsModal()">Cancel</button>
+                    <button class="btn btn-danger" id="confirmDeleteEmptyRowsBtn" onclick="app.confirmDeleteEmptyRows()">Delete Empty Rows</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Clear All Hours Modal -->
+    <div class="modal" id="clearAllHoursModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Clear All Hours</h2>
+                <button class="close-btn" onclick="app.closeClearAllHoursModal()">&times;</button>
+            </div>
+            <div>
+                <p style="margin-bottom: 15px;" id="clearAllHoursMessage">
+                    <!-- Message will be populated by JavaScript -->
+                </p>
+                <p style="margin-bottom: 20px; color: #dc3545; font-weight: 500;">
+                    This action cannot be undone.
+                </p>
+                <div style="margin-top: 15px;">
+                    <button class="btn btn-secondary" onclick="app.closeClearAllHoursModal()">Cancel</button>
+                    <button class="btn btn-danger" id="confirmClearAllHoursBtn" onclick="app.confirmClearAllHours()">Clear All Hours</button>
                 </div>
             </div>
         </div>
@@ -4028,6 +4189,123 @@
 
                 // Show confirmation
                 alert('Deleted ' + weeksToDelete.length + ' week' + (weeksToDelete.length !== 1 ? 's' : '') + ' of data.');
+            },
+
+            // ==================== DELETE EMPTY ROWS ====================
+            getEmptyRows() {
+                const week = this.data.weeks[this.currentWeekStart];
+                if (!week || !week.rows) return [];
+
+                return week.rows.filter(row => {
+                    const total = parseFloat(this.getRowTotal(row)) || 0;
+                    return total === 0;
+                });
+            },
+
+            showDeleteEmptyRowsModal() {
+                const emptyRows = this.getEmptyRows();
+                const messageEl = document.getElementById('deleteEmptyRowsMessage');
+                const confirmBtn = document.getElementById('confirmDeleteEmptyRowsBtn');
+
+                if (emptyRows.length === 0) {
+                    messageEl.innerHTML = 'There are no empty rows to delete in the current week.';
+                    confirmBtn.style.display = 'none';
+                } else {
+                    messageEl.innerHTML = `This will delete <strong>${emptyRows.length}</strong> row${emptyRows.length !== 1 ? 's' : ''} that have no hours assigned.`;
+                    confirmBtn.style.display = 'inline-block';
+                }
+
+                document.getElementById('deleteEmptyRowsModal').classList.add('active');
+            },
+
+            closeDeleteEmptyRowsModal() {
+                document.getElementById('deleteEmptyRowsModal').classList.remove('active');
+            },
+
+            confirmDeleteEmptyRows() {
+                const week = this.data.weeks[this.currentWeekStart];
+                if (!week || !week.rows) {
+                    this.closeDeleteEmptyRowsModal();
+                    return;
+                }
+
+                const originalCount = week.rows.length;
+                week.rows = week.rows.filter(row => {
+                    const total = parseFloat(this.getRowTotal(row)) || 0;
+                    return total > 0;
+                });
+                const deletedCount = originalCount - week.rows.length;
+
+                this.saveData();
+                this.renderTable();
+                this.closeDeleteEmptyRowsModal();
+
+                if (deletedCount > 0) {
+                    alert('Deleted ' + deletedCount + ' empty row' + (deletedCount !== 1 ? 's' : '') + '.');
+                }
+            },
+
+            // ==================== CLEAR ALL HOURS ====================
+            getTotalHoursInWeek() {
+                const week = this.data.weeks[this.currentWeekStart];
+                if (!week || !week.rows) return 0;
+
+                return week.rows.reduce((total, row) => {
+                    return total + (parseFloat(this.getRowTotal(row)) || 0);
+                }, 0);
+            },
+
+            showClearAllHoursModal() {
+                const totalHours = this.getTotalHoursInWeek();
+                const week = this.data.weeks[this.currentWeekStart];
+                const rowCount = week?.rows?.length || 0;
+                const messageEl = document.getElementById('clearAllHoursMessage');
+                const confirmBtn = document.getElementById('confirmClearAllHoursBtn');
+
+                if (totalHours === 0) {
+                    messageEl.innerHTML = 'There are no hours to clear in the current week.';
+                    confirmBtn.style.display = 'none';
+                } else {
+                    messageEl.innerHTML = `This will clear <strong>${totalHours.toFixed(1)}</strong> hours across <strong>${rowCount}</strong> row${rowCount !== 1 ? 's' : ''} in the current week.`;
+                    confirmBtn.style.display = 'inline-block';
+                }
+
+                document.getElementById('clearAllHoursModal').classList.add('active');
+            },
+
+            closeClearAllHoursModal() {
+                document.getElementById('clearAllHoursModal').classList.remove('active');
+            },
+
+            confirmClearAllHours() {
+                const week = this.data.weeks[this.currentWeekStart];
+                if (!week || !week.rows) {
+                    this.closeClearAllHoursModal();
+                    return;
+                }
+
+                const totalCleared = this.getTotalHoursInWeek();
+
+                // Clear all hours in all rows
+                week.rows.forEach(row => {
+                    row.hours = {
+                        mon: 0,
+                        tue: 0,
+                        wed: 0,
+                        thu: 0,
+                        fri: 0,
+                        sat: 0,
+                        sun: 0
+                    };
+                });
+
+                this.saveData();
+                this.renderTable();
+                this.closeClearAllHoursModal();
+
+                if (totalCleared > 0) {
+                    alert('Cleared ' + totalCleared.toFixed(1) + ' hours from all rows.');
+                }
             },
 
             formatCSVDate(date) {
