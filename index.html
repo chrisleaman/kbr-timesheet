@@ -1631,6 +1631,197 @@
                 content: '';
             }
         }
+
+        /* Agile Accrual Modal Styles */
+        .agile-accrual-modal-content {
+            max-width: 900px;
+            max-height: 85vh;
+        }
+
+        .agile-balance-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .agile-balance-label {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+
+        .agile-balance-value {
+            font-size: 36px;
+            font-weight: bold;
+        }
+
+        .agile-balance-details {
+            font-size: 14px;
+            opacity: 0.85;
+            margin-top: 8px;
+        }
+
+        .agile-transactions-container {
+            max-height: 350px;
+            overflow-x: hidden;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+
+        .agile-transactions-table {
+            width: 100%;
+            max-width: 100%;
+            border-collapse: collapse;
+            display: table;
+        }
+
+        .agile-transactions-table th,
+        .agile-transactions-table td {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            box-sizing: border-box;
+        }
+
+        .agile-transactions-table td:nth-child(2) {
+            white-space: normal;
+            word-break: break-word;
+        }
+
+        .agile-transactions-table thead {
+            position: sticky;
+            top: 0;
+            background: #f8f9fa;
+            z-index: 1;
+        }
+
+        .agile-transactions-table th {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 2px solid #dee2e6;
+            font-weight: 600;
+        }
+
+        .agile-transactions-table td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .agile-transactions-table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .agile-amount-positive {
+            color: #28a745;
+            font-weight: 600;
+        }
+
+        .agile-amount-negative {
+            color: #dc3545;
+            font-weight: 600;
+        }
+
+        .agile-type-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .agile-type-accrual {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .agile-type-spend {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .agile-type-manual {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .agile-adjustment-form {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .agile-adjustment-form h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        .agile-form-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+
+        .agile-form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .agile-form-group label {
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .agile-form-group input {
+            padding: 8px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .agile-form-group input:focus {
+            border-color: #0066cc;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(0,102,204,0.2);
+        }
+
+        .agile-transactions-table td:last-child {
+            text-align: center;
+        }
+
+        .agile-delete-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            opacity: 0.6;
+        }
+
+        .agile-delete-btn:hover {
+            opacity: 1;
+            background: #f8d7da;
+        }
+
+        .agile-no-data {
+            text-align: center;
+            padding: 40px 20px;
+            color: #888;
+            white-space: normal;
+            word-break: break-word;
+        }
     </style>
 </head>
 <body>
@@ -1697,16 +1888,17 @@
 
             <div class="button-group-divider"></div>
 
-            <!-- Export -->
+            <!-- Views -->
             <div class="button-group">
-                <button class="btn" onclick="app.exportCSV()">Export CSV</button>
                 <button class="btn btn-secondary" onclick="app.showSummaryView()">Summary View</button>
+                <button class="btn btn-secondary" id="agileBalanceBtn" onclick="app.showAgileAccrualModal()">Agile Balance (0 hrs)</button>
             </div>
 
             <div class="button-group-divider"></div>
 
-            <!-- Backup -->
+            <!-- Export & Backup -->
             <div class="button-group">
+                <button class="btn" onclick="app.exportCSV()">Export CSV</button>
                 <button class="btn btn-secondary" onclick="app.exportJSON()">Export Backup</button>
                 <button class="btn btn-secondary" onclick="app.importJSON()">Import Backup</button>
             </div>
@@ -2485,6 +2677,81 @@
         </div>
     </div>
 
+    <!-- Agile Accrual Modal -->
+    <div class="modal" id="agileAccrualModal">
+        <div class="modal-content agile-accrual-modal-content">
+            <div class="modal-header">
+                <h2>Agile Accrual Balance</h2>
+                <button class="close-btn" onclick="app.closeAgileAccrualModal()">&times;</button>
+            </div>
+
+            <!-- Balance Summary Card -->
+            <div class="agile-balance-card">
+                <div class="agile-balance-label">Current Balance</div>
+                <div class="agile-balance-value" id="agileBalanceValue">0.0 hours</div>
+                <div class="agile-balance-details">
+                    <span id="agileAccruedTotal">0.0 accrued</span> |
+                    <span id="agileSpentTotal">0.0 spent</span>
+                </div>
+            </div>
+
+            <!-- Transaction History -->
+            <h3 style="margin-bottom: 10px;">Transaction History</h3>
+            <div class="agile-transactions-container">
+                <table class="agile-transactions-table">
+                    <colgroup>
+                        <col style="width: 15%;">
+                        <col style="width: 35%;">
+                        <col style="width: 12%;">
+                        <col style="width: 12%;">
+                        <col style="width: 14%;">
+                        <col style="width: 12%;">
+                    </colgroup>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Description</th>
+                            <th>Amount</th>
+                            <th>Balance</th>
+                            <th>Type</th>
+                            <th style="text-align: center;"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="agileTransactionsBody">
+                        <!-- Populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Manual Adjustment Form -->
+            <div class="agile-adjustment-form">
+                <h3>Add Manual Adjustment</h3>
+                <div class="agile-form-row">
+                    <div class="agile-form-group">
+                        <label for="agileAdjDate">Date</label>
+                        <input type="date" id="agileAdjDate" required>
+                    </div>
+                    <div class="agile-form-group">
+                        <label for="agileAdjAmount">Hours (+/-)</label>
+                        <input type="number" id="agileAdjAmount" step="0.5" placeholder="e.g., 4 or -2" style="width: 120px;" required>
+                    </div>
+                    <div class="agile-form-group" style="flex: 1;">
+                        <label for="agileAdjReason">Reason</label>
+                        <input type="text" id="agileAdjReason" placeholder="e.g., Correction for late night work" style="width: 100%;" required>
+                    </div>
+                    <div class="agile-form-group">
+                        <label>&nbsp;</label>
+                        <button class="btn" onclick="app.addAgileAdjustment()">Add</button>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 20px; text-align: right;">
+                <button class="btn btn-secondary" onclick="app.closeAgileAccrualModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Calendar Modal -->
     <div class="modal" id="calendarModal" role="dialog" aria-labelledby="calendarModalTitle" aria-modal="true">
         <div class="modal-content calendar-modal-content">
@@ -2818,7 +3085,8 @@
                 },
                 dropdownOptions: CONFIG.dropdownOptions,
                 templates: [],
-                weeks: {}
+                weeks: {},
+                agileAdjustments: []
             },
             currentWeekStart: null,
             selectedCell: null,
@@ -2853,6 +3121,9 @@
 
                 // Initialize cost type display
                 this.updateCostTypeDisplay();
+
+                // Initialize agile balance display
+                this.updateAgileBalanceHeader();
             },
 
             getCurrentWeekStart() {
@@ -2998,6 +3269,11 @@
                             }
                         });
                     }
+
+                    // Initialize agileAdjustments array if not present (for existing data)
+                    if (!this.data.agileAdjustments) {
+                        this.data.agileAdjustments = [];
+                    }
                 } catch (error) {
                     console.error('Error loading data:', error);
                     alert('Error loading saved data. Starting fresh.');
@@ -3018,7 +3294,10 @@
             debouncedSave() {
                 this.updateSaveIndicator('saving');
                 clearTimeout(this.saveTimeout);
-                this.saveTimeout = setTimeout(() => this.saveData(), 500);
+                this.saveTimeout = setTimeout(() => {
+                    this.saveData();
+                    this.updateAgileBalanceHeader();
+                }, 500);
             },
 
             updateSaveIndicator(status) {
@@ -3465,6 +3744,7 @@
                 }
                 this.render();
                 this.saveData();
+                this.updateAgileBalanceHeader();
             },
 
             duplicateRow(rowId) {
@@ -5237,6 +5517,313 @@
                     document.removeEventListener('keydown', this._summaryEscHandler);
                     this._summaryEscHandler = null;
                 }
+            },
+
+            // ==================== AGILE ACCRUAL TRACKING ====================
+            showAgileAccrualModal() {
+                const modal = document.getElementById('agileAccrualModal');
+                this.renderAgileAccrualData();
+                modal.classList.add('active');
+
+                // Fix table width after modal is visible
+                requestAnimationFrame(() => {
+                    const container = document.querySelector('.agile-transactions-container');
+                    const table = document.querySelector('.agile-transactions-table');
+                    if (container && table) {
+                        // Use setProperty with !important priority
+                        table.style.setProperty('width', container.clientWidth + 'px', 'important');
+                        table.style.setProperty('max-width', container.clientWidth + 'px', 'important');
+                        table.style.setProperty('min-width', '0', 'important');
+                    }
+                });
+
+                // Set default date to today (use formatDate to avoid timezone issues)
+                document.getElementById('agileAdjDate').value = this.formatDate(new Date());
+
+                // Close on backdrop click
+                this._agileBackdropHandler = (e) => {
+                    if (e.target.id === 'agileAccrualModal') {
+                        this.closeAgileAccrualModal();
+                    }
+                };
+                modal.addEventListener('click', this._agileBackdropHandler);
+
+                // Close on Escape key
+                this._agileEscHandler = (e) => {
+                    if (e.key === 'Escape') {
+                        this.closeAgileAccrualModal();
+                    }
+                };
+                document.addEventListener('keydown', this._agileEscHandler);
+            },
+
+            closeAgileAccrualModal() {
+                const modal = document.getElementById('agileAccrualModal');
+                modal.classList.remove('active');
+
+                if (this._agileBackdropHandler) {
+                    modal.removeEventListener('click', this._agileBackdropHandler);
+                    this._agileBackdropHandler = null;
+                }
+                if (this._agileEscHandler) {
+                    document.removeEventListener('keydown', this._agileEscHandler);
+                    this._agileEscHandler = null;
+                }
+
+                // Clear form fields
+                document.getElementById('agileAdjDate').value = '';
+                document.getElementById('agileAdjAmount').value = '';
+                document.getElementById('agileAdjReason').value = '';
+            },
+
+            calculateAgileBalance() {
+                const transactions = [];
+
+                // Scan all weeks for accrual and spend rows
+                Object.entries(this.data.weeks).forEach(([weekStart, week]) => {
+                    if (!week.rows) return;
+
+                    const weekDates = this.getWeekDates(weekStart);
+                    const days = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+
+                    week.rows.forEach(row => {
+                        // Skip rows without hours data
+                        if (!row.hours) return;
+
+                        // Check for accruals (type = "Agile Accrual")
+                        if (row.type === "Agile Accrual") {
+                            days.forEach((day, index) => {
+                                const hours = parseFloat(row.hours[day]) || 0;
+                                if (hours > 0) {
+                                    transactions.push({
+                                        date: this.formatDate(weekDates[index]),
+                                        description: `Accrual: ${row.description || row.project || 'No description'}`,
+                                        amount: hours,
+                                        type: 'accrual',
+                                        source: { weekStart, rowId: row.id, day }
+                                    });
+                                }
+                            });
+                        }
+
+                        // Check for spending (specific project + task)
+                        if (row.project === "Paid Time Off (1047)" &&
+                            row.projectTask === "Agile Time Off (1047)") {
+                            days.forEach((day, index) => {
+                                const hours = parseFloat(row.hours[day]) || 0;
+                                if (hours > 0) {
+                                    transactions.push({
+                                        date: this.formatDate(weekDates[index]),
+                                        description: `Spend: ${row.description || 'Agile Time Off'}`,
+                                        amount: -hours,  // Negative for spending
+                                        type: 'spend',
+                                        source: { weekStart, rowId: row.id, day }
+                                    });
+                                }
+                            });
+                        }
+                    });
+                });
+
+                // Add manual adjustments
+                if (this.data.agileAdjustments) {
+                    this.data.agileAdjustments.forEach(adj => {
+                        transactions.push({
+                            date: adj.date,
+                            description: `Manual: ${adj.reason}`,
+                            amount: parseFloat(adj.amount),
+                            type: 'manual',
+                            id: adj.id
+                        });
+                    });
+                }
+
+                // Sort by date ascending
+                transactions.sort((a, b) => a.date.localeCompare(b.date));
+
+                // Calculate running balance
+                let runningBalance = 0;
+                transactions.forEach(t => {
+                    runningBalance += t.amount;
+                    t.runningBalance = runningBalance;
+                });
+
+                return {
+                    balance: runningBalance,
+                    transactions: transactions
+                };
+            },
+
+            renderAgileAccrualData() {
+                const result = this.calculateAgileBalance();
+
+                // Update balance card
+                document.getElementById('agileBalanceValue').textContent =
+                    `${result.balance.toFixed(1)} hours`;
+
+                // Calculate totals for display
+                const accrued = result.transactions
+                    .filter(t => t.type === 'accrual' || (t.type === 'manual' && t.amount > 0))
+                    .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+                const spent = result.transactions
+                    .filter(t => t.type === 'spend' || (t.type === 'manual' && t.amount < 0))
+                    .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+
+                document.getElementById('agileAccruedTotal').textContent = `${accrued.toFixed(1)} accrued`;
+                document.getElementById('agileSpentTotal').textContent = `${spent.toFixed(1)} spent`;
+
+                // Render transactions table
+                this.renderAgileTransactions(result.transactions);
+            },
+
+            renderAgileTransactions(transactions) {
+                const tbody = document.getElementById('agileTransactionsBody');
+
+                if (transactions.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="agile-no-data">No transactions found. Accrual hours are recorded when you book time with Type "Agile Accrual".</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = '';
+
+                // Reverse to show most recent first
+                transactions.slice().reverse().forEach(t => {
+                    const tr = document.createElement('tr');
+
+                    const amountClass = t.amount >= 0 ? 'agile-amount-positive' : 'agile-amount-negative';
+                    const amountDisplay = t.amount >= 0 ? `+${t.amount.toFixed(1)}` : t.amount.toFixed(1);
+
+                    let typeBadge = '';
+                    if (t.type === 'accrual') {
+                        typeBadge = '<span class="agile-type-badge agile-type-accrual">Accrual</span>';
+                    } else if (t.type === 'spend') {
+                        typeBadge = '<span class="agile-type-badge agile-type-spend">Spend</span>';
+                    } else {
+                        typeBadge = '<span class="agile-type-badge agile-type-manual">Manual</span>';
+                    }
+
+                    // Delete button for all transaction types
+                    let deleteBtn = '';
+                    if (t.type === 'manual' && t.id) {
+                        deleteBtn = `<button class="agile-delete-btn" onclick="app.deleteAgileAdjustment('${t.id}')" title="Delete adjustment">🗑️</button>`;
+                    } else if (t.source) {
+                        const sourceData = encodeURIComponent(JSON.stringify(t.source));
+                        deleteBtn = `<button class="agile-delete-btn" onclick="app.deleteAgileTransaction('${sourceData}')" title="Delete transaction (sets hours to 0)">🗑️</button>`;
+                    }
+
+                    tr.innerHTML = `
+                        <td>${this.formatDisplayDate(t.date)}</td>
+                        <td>${this.escapeHtml(t.description)}</td>
+                        <td class="${amountClass}">${amountDisplay}</td>
+                        <td>${t.runningBalance.toFixed(1)}</td>
+                        <td>${typeBadge}</td>
+                        <td>${deleteBtn}</td>
+                    `;
+
+                    tbody.appendChild(tr);
+                });
+            },
+
+            addAgileAdjustment() {
+                const date = document.getElementById('agileAdjDate').value;
+                const amount = parseFloat(document.getElementById('agileAdjAmount').value);
+                const reason = document.getElementById('agileAdjReason').value.trim();
+
+                // Validation
+                if (!date) {
+                    alert('Please enter a date');
+                    return;
+                }
+
+                if (isNaN(amount) || amount === 0) {
+                    alert('Please enter a valid non-zero amount (positive for accrual, negative for spend)');
+                    return;
+                }
+
+                if (!reason) {
+                    alert('Please enter a reason for this adjustment');
+                    return;
+                }
+
+                // Initialize array if needed
+                if (!this.data.agileAdjustments) {
+                    this.data.agileAdjustments = [];
+                }
+
+                // Create adjustment
+                const adjustment = {
+                    id: `adj_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                    date: date,
+                    amount: amount,
+                    reason: reason
+                };
+
+                this.data.agileAdjustments.push(adjustment);
+                this.saveData();
+
+                // Clear form and reset date to today
+                document.getElementById('agileAdjDate').value = this.formatDate(new Date());
+                document.getElementById('agileAdjAmount').value = '';
+                document.getElementById('agileAdjReason').value = '';
+
+                // Re-render
+                this.renderAgileAccrualData();
+                this.updateAgileBalanceHeader();
+            },
+
+            deleteAgileAdjustment(adjustmentId) {
+                if (!confirm('Delete this adjustment?')) {
+                    return;
+                }
+
+                this.data.agileAdjustments = this.data.agileAdjustments.filter(
+                    adj => adj.id !== adjustmentId
+                );
+                this.saveData();
+                this.renderAgileAccrualData();
+                this.updateAgileBalanceHeader();
+            },
+
+            deleteAgileTransaction(encodedSource) {
+                const source = JSON.parse(decodeURIComponent(encodedSource));
+
+                if (!confirm('Delete this transaction? This will set the hours to 0 for this day.')) {
+                    return;
+                }
+
+                const week = this.data.weeks[source.weekStart];
+                if (!week || !week.rows) return;
+
+                const row = week.rows.find(r => r.id === source.rowId);
+                if (!row || !row.hours) return;
+
+                // Set hours to 0 for this day
+                row.hours[source.day] = 0;
+
+                this.saveData();
+                this.renderAgileAccrualData();
+                this.updateAgileBalanceHeader();
+
+                // Re-render the main table if we're viewing the same week
+                if (source.weekStart === this.formatDate(this.currentWeekStart)) {
+                    this.renderTable();
+                }
+            },
+
+            updateAgileBalanceHeader() {
+                const result = this.calculateAgileBalance();
+                const btn = document.getElementById('agileBalanceBtn');
+                if (btn) {
+                    const balance = result.balance.toFixed(1);
+                    btn.textContent = `Agile Balance (${balance} hrs)`;
+                }
+            },
+
+            escapeHtml(text) {
+                if (!text) return '';
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
             },
 
             aggregateSummaryData() {
