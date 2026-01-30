@@ -743,6 +743,215 @@
             display: none;
         }
 
+        /* ==================== SUMMARY VIEW MODAL ==================== */
+        .summary-modal-content {
+            max-width: 95vw;
+            width: 95vw;
+            max-height: 90vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .summary-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-shrink: 0;
+        }
+
+        .summary-modal-header h2 {
+            color: #0066cc;
+            font-size: 20px;
+            margin: 0;
+        }
+
+        .summary-meta {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-shrink: 0;
+            color: #666;
+            font-size: 13px;
+        }
+
+        .summary-meta-badge {
+            background: #e3f2fd;
+            border: 1px solid #0066cc;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-weight: 500;
+            color: #0066cc;
+        }
+
+        .summary-table-wrapper {
+            flex: 1;
+            overflow: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .summary-table {
+            width: auto;
+            border-collapse: separate;
+            border-spacing: 0;
+            font-size: 12px;
+            min-width: 100%;
+        }
+
+        .summary-table thead {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+        }
+
+        .summary-table th {
+            background-color: #0066cc;
+            color: white;
+            padding: 8px 10px;
+            text-align: left;
+            font-weight: 600;
+            border: 1px solid #004c99;
+            white-space: nowrap;
+        }
+
+        .summary-table th.week-col {
+            text-align: center;
+            min-width: 70px;
+        }
+
+        .summary-table th.total-col {
+            text-align: right;
+            background-color: #004c99;
+        }
+
+        .summary-table td {
+            padding: 6px 10px;
+            border: 1px solid #e0e0e0;
+            white-space: nowrap;
+            background-color: white;
+        }
+
+        /* Sticky first column */
+        .summary-table .sticky-col {
+            position: sticky;
+            left: 0;
+            z-index: 15;
+            background-color: white;
+            box-shadow: 2px 0 4px rgba(0, 0, 0, 0.08);
+            min-width: 280px;
+            max-width: 350px;
+        }
+
+        .summary-table thead .sticky-col {
+            z-index: 25;
+            background-color: #0066cc;
+        }
+
+        /* Category colors on sticky column */
+        .summary-table tbody tr.cat-bd .sticky-col {
+            background-color: rgba(255, 152, 0, 0.15);
+        }
+        .summary-table tbody tr.cat-o .sticky-col {
+            background-color: rgba(156, 39, 176, 0.15);
+        }
+        .summary-table tbody tr.cat-t .sticky-col {
+            background-color: rgba(76, 175, 80, 0.15);
+        }
+        .summary-table tbody tr.cat-p .sticky-col {
+            background-color: rgba(33, 150, 243, 0.15);
+        }
+
+        /* Hours cells */
+        .summary-table .hours-cell {
+            text-align: right;
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+
+        .summary-table .hours-cell.has-value {
+            color: #0066cc;
+            font-weight: 500;
+        }
+
+        .summary-table .hours-cell.empty {
+            color: #ccc;
+        }
+
+        /* Total column */
+        .summary-table .total-cell {
+            text-align: right;
+            font-weight: 600;
+            background-color: #f0f7ff !important;
+            border-left: 2px solid #0066cc;
+        }
+
+        /* Totals row */
+        .summary-table .totals-row td {
+            font-weight: 600;
+            background-color: #e3f2fd !important;
+            border-top: 2px solid #0066cc;
+        }
+
+        .summary-table .totals-row .sticky-col {
+            background-color: #e3f2fd !important;
+        }
+
+        /* Grand total */
+        .summary-table .grand-total {
+            background-color: #0066cc !important;
+            color: white !important;
+            font-weight: bold;
+        }
+
+        /* Hover effect */
+        .summary-table tbody tr:not(.totals-row):hover td:not(.sticky-col) {
+            background-color: #f5f5f5;
+        }
+
+        /* Empty state */
+        .summary-empty {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .summary-empty h3 {
+            color: #666;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .summary-modal-content {
+                max-width: 98vw;
+                width: 98vw;
+                padding: 15px;
+            }
+            .summary-modal-header h2 {
+                font-size: 16px;
+            }
+            .summary-meta {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            .summary-table {
+                font-size: 11px;
+            }
+            .summary-table th,
+            .summary-table td {
+                padding: 5px 6px;
+            }
+            .summary-table .sticky-col {
+                min-width: 200px;
+            }
+        }
+
         /* Copy Success Toast Notification */
         .copy-toast {
             position: fixed;
@@ -1491,6 +1700,7 @@
             <!-- Export -->
             <div class="button-group">
                 <button class="btn" onclick="app.exportCSV()">Export CSV</button>
+                <button class="btn btn-secondary" onclick="app.showSummaryView()">Summary View</button>
             </div>
 
             <div class="button-group-divider"></div>
@@ -2181,6 +2391,24 @@
                     <button class="btn btn-secondary" onclick="app.closeExportWarningModal()">Return to Timesheet</button>
                     <button class="btn" onclick="app.proceedWithExport()">Download CSV Anyway</button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary View Modal -->
+    <div class="modal" id="summaryViewModal">
+        <div class="modal-content summary-modal-content">
+            <div class="summary-modal-header">
+                <h2>Timesheet Summary by Week</h2>
+                <button class="close-btn" onclick="app.closeSummaryView()">&times;</button>
+            </div>
+            <div class="summary-meta">
+                <span class="summary-meta-badge" id="summaryWeekCount">0 weeks</span>
+                <span class="summary-meta-badge" id="summaryProjectCount">0 projects</span>
+                <span id="summaryDateRange"></span>
+            </div>
+            <div class="summary-table-wrapper" id="summaryTableWrapper">
+                <!-- Table will be rendered here -->
             </div>
         </div>
     </div>
@@ -4972,6 +5200,200 @@
                 this.closeCopyFromWeekModal();
 
                 alert(`Successfully copied ${checkboxes.length} row(s) to current week`);
+            },
+
+            // ==================== SUMMARY VIEW ====================
+            showSummaryView() {
+                const modal = document.getElementById('summaryViewModal');
+                modal.classList.add('active');
+                this.renderSummaryTable();
+
+                // Close on backdrop click
+                this._summaryBackdropHandler = (e) => {
+                    if (e.target.id === 'summaryViewModal') {
+                        this.closeSummaryView();
+                    }
+                };
+                modal.addEventListener('click', this._summaryBackdropHandler);
+
+                // Close on Escape key
+                this._summaryEscHandler = (e) => {
+                    if (e.key === 'Escape') {
+                        this.closeSummaryView();
+                    }
+                };
+                document.addEventListener('keydown', this._summaryEscHandler);
+            },
+
+            closeSummaryView() {
+                const modal = document.getElementById('summaryViewModal');
+                modal.classList.remove('active');
+
+                if (this._summaryBackdropHandler) {
+                    modal.removeEventListener('click', this._summaryBackdropHandler);
+                    this._summaryBackdropHandler = null;
+                }
+                if (this._summaryEscHandler) {
+                    document.removeEventListener('keydown', this._summaryEscHandler);
+                    this._summaryEscHandler = null;
+                }
+            },
+
+            aggregateSummaryData() {
+                // Get all weeks with data, sorted oldest to newest
+                const weeks = Object.keys(this.data.weeks)
+                    .filter(w => this.hasWeekData(w))
+                    .sort();
+
+                if (weeks.length === 0) {
+                    return { weeks: [], rows: [], weekTotals: {}, grandTotal: 0 };
+                }
+
+                // Aggregate by project + projectTask key
+                const rowMap = new Map();
+                const weekTotals = {};
+                let grandTotal = 0;
+
+                weeks.forEach(weekStart => {
+                    const week = this.data.weeks[weekStart];
+                    weekTotals[weekStart] = 0;
+
+                    week.rows.forEach(row => {
+                        // Create composite key
+                        const project = row.project || '';
+                        const task = row.projectTask || '';
+                        const key = task ? `${project} / ${task}` : project;
+
+                        if (!key.trim()) return; // Skip completely empty rows
+
+                        if (!rowMap.has(key)) {
+                            rowMap.set(key, {
+                                key: key,
+                                project: project,
+                                projectTask: task,
+                                weekHours: {},
+                                total: 0
+                            });
+                        }
+
+                        const rowData = rowMap.get(key);
+
+                        // Sum hours for this week (reuse getRowTotal, with null check)
+                        const weekHours = row.hours ? parseFloat(this.getRowTotal(row)) : 0;
+
+                        if (weekHours > 0) {
+                            rowData.weekHours[weekStart] =
+                                (rowData.weekHours[weekStart] || 0) + weekHours;
+                            rowData.total += weekHours;
+                            weekTotals[weekStart] += weekHours;
+                            grandTotal += weekHours;
+                        }
+                    });
+                });
+
+                // Convert to sorted array - filter out rows with no hours
+                const rows = Array.from(rowMap.values())
+                    .filter(r => r.total > 0)
+                    .sort((a, b) => {
+                        // Sort by category first
+                        const catA = this.getCategory(a.project);
+                        const catB = this.getCategory(b.project);
+                        const catOrder = { 'BD': 0, 'O': 1, 'T': 2, 'P': 3 };
+                        const catDiff = catOrder[catA] - catOrder[catB];
+                        if (catDiff !== 0) return catDiff;
+                        // Then alphabetically by key
+                        return a.key.localeCompare(b.key);
+                    });
+
+                return {
+                    weeks: weeks,
+                    rows: rows,
+                    weekTotals: weekTotals,
+                    grandTotal: grandTotal
+                };
+            },
+
+            renderSummaryTable() {
+                const wrapper = document.getElementById('summaryTableWrapper');
+                const summaryData = this.aggregateSummaryData();
+
+                // Update metadata
+                document.getElementById('summaryWeekCount').textContent =
+                    `${summaryData.weeks.length} week${summaryData.weeks.length !== 1 ? 's' : ''}`;
+                document.getElementById('summaryProjectCount').textContent =
+                    `${summaryData.rows.length} project${summaryData.rows.length !== 1 ? 's' : ''}`;
+
+                if (summaryData.weeks.length > 0) {
+                    const firstWeek = this.formatDisplayDate(summaryData.weeks[0]).split(',')[0];
+                    const lastWeek = this.formatDisplayDate(summaryData.weeks[summaryData.weeks.length - 1]).split(',')[0];
+                    document.getElementById('summaryDateRange').textContent = `${firstWeek} to ${lastWeek}`;
+                } else {
+                    document.getElementById('summaryDateRange').textContent = '';
+                }
+
+                // Empty state
+                if (summaryData.weeks.length === 0 || summaryData.rows.length === 0) {
+                    wrapper.innerHTML = `
+                        <div class="summary-empty">
+                            <h3>No Timesheet Data</h3>
+                            <p>Start adding hours to your timesheet to see the summary view.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Build table
+                let html = '<table class="summary-table">';
+
+                // Header row
+                html += '<thead><tr>';
+                html += '<th class="sticky-col">Project / Task</th>';
+                summaryData.weeks.forEach(week => {
+                    const dateStr = this.formatDisplayDate(week).split(',')[0]; // "Dec 22"
+                    html += `<th class="week-col">${dateStr}</th>`;
+                });
+                html += '<th class="total-col">Total</th>';
+                html += '</tr></thead>';
+
+                // Data rows
+                html += '<tbody>';
+                summaryData.rows.forEach(rowData => {
+                    const category = this.getCategory(rowData.project);
+                    html += `<tr class="cat-${category.toLowerCase()}">`;
+                    html += `<td class="sticky-col">${this.escapeHtml(rowData.key)}</td>`;
+
+                    summaryData.weeks.forEach(week => {
+                        const hours = rowData.weekHours[week] || 0;
+                        if (hours > 0) {
+                            html += `<td class="hours-cell has-value">${hours.toFixed(1)}</td>`;
+                        } else {
+                            html += `<td class="hours-cell empty">-</td>`;
+                        }
+                    });
+
+                    html += `<td class="hours-cell total-cell">${rowData.total.toFixed(1)}</td>`;
+                    html += '</tr>';
+                });
+
+                // Totals row
+                html += '<tr class="totals-row">';
+                html += '<td class="sticky-col"><strong>Weekly Totals</strong></td>';
+                summaryData.weeks.forEach(week => {
+                    const total = summaryData.weekTotals[week] || 0;
+                    html += `<td class="hours-cell has-value">${total.toFixed(1)}</td>`;
+                });
+                html += `<td class="hours-cell grand-total">${summaryData.grandTotal.toFixed(1)}</td>`;
+                html += '</tr>';
+
+                html += '</tbody></table>';
+
+                wrapper.innerHTML = html;
+            },
+
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
             },
 
             // ==================== ADD PAST ROW (FUZZY SEARCH) ====================
