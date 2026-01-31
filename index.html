@@ -4670,6 +4670,21 @@
                         html += '<li>Week of ' + this.formatWeekRange(week.key) + ' (' + week.rowCount + ' row' + (week.rowCount !== 1 ? 's' : '') + ')</li>';
                     }
                     html += '</ul>';
+
+                    // Calculate and show agile impact
+                    const weekKeys = weeksToDelete.map(w => w.key);
+                    const impact = this.calculateAgileImpactForWeeks(weekKeys);
+
+                    if (impact.net !== 0) {
+                        const netSign = impact.net > 0 ? '+' : '';
+                        html += '<div style="margin-top: 15px; padding: 10px; background-color: #fff3cd; border-left: 4px solid #ffc107; font-size: 13px;">';
+                        html += '<strong>Agile Balance Impact:</strong><br>';
+                        html += impact.accrual.toFixed(1) + ' hrs accrual, ' + impact.spend.toFixed(1) + ' hrs spend<br>';
+                        html += '<strong>Net: ' + netSign + impact.net.toFixed(1) + ' hrs</strong><br>';
+                        html += '<span style="font-size: 12px; color: #666;">A manual adjustment will be created to preserve this balance.</span>';
+                        html += '</div>';
+                    }
+
                     previewDiv.innerHTML = html;
                     deleteBtn.textContent = 'Delete ' + weeksToDelete.length + ' Week' + (weeksToDelete.length !== 1 ? 's' : '');
                     deleteBtn.disabled = false;
@@ -4686,17 +4701,60 @@
                     return;
                 }
 
+                // Calculate agile impact before deleting
+                const weekKeys = weeksToDelete.map(w => w.key);
+                const impact = this.calculateAgileImpactForWeeks(weekKeys);
+
                 // Delete the weeks
                 for (const week of weeksToDelete) {
                     delete this.data.weeks[week.key];
+                }
+
+                // Create manual adjustment if there's a net agile impact
+                if (impact.net !== 0) {
+                    if (!this.data.agileAdjustments) {
+                        this.data.agileAdjustments = [];
+                    }
+
+                    // Format date range for reason
+                    let dateRangeStr = 'deleted weeks';
+                    if (impact.dateRange.first && impact.dateRange.last) {
+                        const firstRange = this.formatWeekRange(impact.dateRange.first);
+                        const lastRange = this.formatWeekRange(impact.dateRange.last);
+                        dateRangeStr = impact.dateRange.first === impact.dateRange.last
+                            ? firstRange
+                            : firstRange + ' to ' + lastRange;
+                    }
+
+                    const reason = `Week cleanup: preserved ${impact.accrual.toFixed(1)} hrs accrual, ${impact.spend.toFixed(1)} hrs spend from ${weeksToDelete.length} week${weeksToDelete.length !== 1 ? 's' : ''} (${dateRangeStr})`;
+
+                    const adjustment = {
+                        id: `adj_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                        date: this.formatDate(new Date()),
+                        amount: impact.net,
+                        reason: reason
+                    };
+
+                    this.data.agileAdjustments.push(adjustment);
                 }
 
                 // Save and close
                 this.saveData();
                 this.closeDeleteOldWeeksModal();
 
+                // Update agile balance display
+                if (document.getElementById('agileAccrualModal').classList.contains('active')) {
+                    this.renderAgileAccrualData();
+                }
+                this.updateAgileBalanceHeader();
+
                 // Show confirmation
-                alert('Deleted ' + weeksToDelete.length + ' week' + (weeksToDelete.length !== 1 ? 's' : '') + ' of data.');
+                let message = 'Deleted ' + weeksToDelete.length + ' week' + (weeksToDelete.length !== 1 ? 's' : '') + ' of data.';
+                if (impact.net !== 0) {
+                    const netSign = impact.net > 0 ? '+' : '';
+                    message += '\n\nAgile balance adjustment created: ' + netSign + impact.net.toFixed(1) + ' hrs';
+                }
+                alert(message);
             },
 
             // ==================== DELETE EMPTY ROWS ====================
@@ -5651,6 +5709,56 @@
                 return {
                     balance: runningBalance,
                     transactions: transactions
+                };
+            },
+
+            // Calculate agile impact (accruals/spends) from specific weeks
+            // Note: This is separate from calculateAgileBalance() because:
+            // - calculateAgileBalance() creates detailed transactions for the UI modal
+            // - This function just needs totals for the cleanup feature
+            // - This function intentionally excludes manual adjustments (only week data)
+            calculateAgileImpactForWeeks(weekKeys) {
+                let totalAccrual = 0;
+                let totalSpend = 0;
+
+                const sortedKeys = [...weekKeys].sort();
+                const firstWeek = sortedKeys.length > 0 ? sortedKeys[0] : null;
+                const lastWeek = sortedKeys.length > 0 ? sortedKeys[sortedKeys.length - 1] : null;
+
+                const days = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+
+                weekKeys.forEach(weekStart => {
+                    const week = this.data.weeks[weekStart];
+                    if (!week || !week.rows) return;
+
+                    week.rows.forEach(row => {
+                        if (!row.hours) return;
+
+                        // Count accruals (same detection logic as calculateAgileBalance)
+                        if (row.type === "Agile Accrual") {
+                            days.forEach(day => {
+                                const hours = parseFloat(row.hours[day]) || 0;
+                                if (hours > 0) totalAccrual += hours;
+                            });
+                        }
+
+                        // Count spends (same detection logic as calculateAgileBalance)
+                        if (row.project === "Paid Time Off (1047)" &&
+                            row.projectTask === "Agile Time Off (1047)") {
+                            days.forEach(day => {
+                                const hours = parseFloat(row.hours[day]) || 0;
+                                if (hours > 0) totalSpend += hours;
+                            });
+                        }
+                    });
+                });
+
+                // Round to 1 decimal place to avoid floating-point precision errors
+                return {
+                    accrual: Math.round(totalAccrual * 10) / 10,
+                    spend: Math.round(totalSpend * 10) / 10,
+                    net: Math.round((totalAccrual - totalSpend) * 10) / 10,
+                    dateRange: { first: firstWeek, last: lastWeek }
                 };
             },
 
