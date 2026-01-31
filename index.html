@@ -200,7 +200,8 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            min-width: 1400px;
+            table-layout: fixed;
+            min-width: 1585px;
         }
 
         thead {
@@ -265,12 +266,115 @@
             text-align: right;
         }
 
-        .zero-value {
-            color: #999;
+        /* Non-zero hours: blue highlight for easy scanning */
+        input.hours-input:not(.zero-value) {
+            background-color: #e3f2fd;
+            border-color: #64b5f6;
+            font-weight: 600;
         }
 
-        .zero-value:focus {
+        /* Zero hours: faded to de-emphasize */
+        input.hours-input.zero-value {
+            color: #bbb;
+            opacity: 0.6;
+            background-color: #fafafa;
+            border-color: #e0e0e0;
+        }
+
+        input.hours-input.zero-value:focus {
+            opacity: 1;
             color: #333;
+            background-color: #fff;
+            border-color: #ced4da;
+        }
+
+        /* Hide native number input spinners */
+        input.hours-input::-webkit-outer-spin-button,
+        input.hours-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input.hours-input {
+            -moz-appearance: textfield; /* Firefox */
+        }
+
+        /* Hours wrapper for custom spinners */
+        .hours-wrapper {
+            position: relative;
+            display: flex;
+            align-items: stretch;
+            min-width: 56px;
+        }
+
+        .hours-wrapper input.hours-input {
+            padding-left: 18px; /* Space for spinners on left */
+            padding-right: 4px;
+        }
+
+        /* Custom spinner container - positioned on left to not obscure right-aligned values */
+        .hours-spinners {
+            position: absolute;
+            left: 1px;
+            top: 1px;
+            bottom: 1px;
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.15s ease;
+            background: inherit;
+        }
+
+        /* Show spinners on wrapper hover or input focus */
+        .hours-wrapper:hover .hours-spinners,
+        .hours-wrapper:focus-within .hours-spinners {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Individual spinner buttons */
+        .hours-spinner {
+            flex: 1;
+            width: 16px;
+            border: none;
+            background-color: #e9ecef;
+            color: #495057;
+            cursor: pointer;
+            font-size: 10px;
+            line-height: 1;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+        }
+
+        .hours-spinner:hover {
+            background-color: #dee2e6;
+        }
+
+        .hours-spinner:active {
+            background-color: #ced4da;
+        }
+
+        .hours-spinner.spinner-up {
+            border-radius: 2px 0 0 0;
+            border-bottom: 1px solid #ced4da;
+        }
+
+        .hours-spinner.spinner-down {
+            border-radius: 0 0 0 2px;
+        }
+
+        /* Match spinner background to input state */
+        .hours-wrapper:has(input:not(.zero-value)) .hours-spinners {
+            background-color: #e3f2fd;
+        }
+        .hours-wrapper:has(input:not(.zero-value)) .hours-spinner {
+            background-color: #bbdefb;
+        }
+        .hours-wrapper:has(input:not(.zero-value)) .hours-spinner:hover {
+            background-color: #90caf9;
         }
 
         .row-total.zero-value {
@@ -2193,7 +2297,7 @@
             <table id="timesheetTable">
                 <thead>
                     <tr>
-                        <th style="width: 60px;">Action</th>
+                        <th style="width: 100px;">Action</th>
                         <th style="width: 210px;" class="sortable" onclick="app.sortColumn('project')" aria-sort="none">
                             Project <span id="sort-project" class="sort-indicator">▾</span>
                         </th>
@@ -2215,25 +2319,25 @@
                         <th class="cat-col sortable" onclick="app.sortColumn('category')" aria-sort="none">
                             Cat. <span id="sort-category" class="sort-indicator">▾</span>
                         </th>
-                        <th style="width: 50px;" class="sortable" onclick="app.sortColumn('mon')" aria-sort="none">
+                        <th style="width: 62px;" class="sortable" onclick="app.sortColumn('mon')" aria-sort="none">
                             Mon <span id="sort-mon" class="sort-indicator">▾</span>
                         </th>
-                        <th style="width: 50px;" class="sortable" onclick="app.sortColumn('tue')" aria-sort="none">
+                        <th style="width: 62px;" class="sortable" onclick="app.sortColumn('tue')" aria-sort="none">
                             Tue <span id="sort-tue" class="sort-indicator">▾</span>
                         </th>
-                        <th style="width: 50px;" class="sortable" onclick="app.sortColumn('wed')" aria-sort="none">
+                        <th style="width: 62px;" class="sortable" onclick="app.sortColumn('wed')" aria-sort="none">
                             Wed <span id="sort-wed" class="sort-indicator">▾</span>
                         </th>
-                        <th style="width: 50px;" class="sortable" onclick="app.sortColumn('thu')" aria-sort="none">
+                        <th style="width: 62px;" class="sortable" onclick="app.sortColumn('thu')" aria-sort="none">
                             Thu <span id="sort-thu" class="sort-indicator">▾</span>
                         </th>
-                        <th style="width: 50px;" class="sortable" onclick="app.sortColumn('fri')" aria-sort="none">
+                        <th style="width: 62px;" class="sortable" onclick="app.sortColumn('fri')" aria-sort="none">
                             Fri <span id="sort-fri" class="sort-indicator">▾</span>
                         </th>
-                        <th style="width: 50px;" class="sortable" onclick="app.sortColumn('sat')" aria-sort="none">
+                        <th style="width: 62px;" class="sortable" onclick="app.sortColumn('sat')" aria-sort="none">
                             Sat <span id="sort-sat" class="sort-indicator">▾</span>
                         </th>
-                        <th style="width: 50px;" class="sortable" onclick="app.sortColumn('sun')" aria-sort="none">
+                        <th style="width: 62px;" class="sortable" onclick="app.sortColumn('sun')" aria-sort="none">
                             Sun <span id="sort-sun" class="sort-indicator">▾</span>
                         </th>
                         <th style="width: 55px;" class="sortable" onclick="app.sortColumn('total')" aria-sort="none">
@@ -3644,13 +3748,13 @@
                         <td>${this.renderSelect('type', row.type, row.id)}</td>
                         <td><input type="text" value="${row.description}" data-field="description" data-row="${row.id}"></td>
                         <td class="category-cell" data-row="${row.id}" title="${this.getCategoryFull(this.getCategory(row.project))}">${this.getCategory(row.project)}</td>
-                        <td><input type="number" class="hours-input${(parseFloat(row.hours.mon) || 0) === 0 ? ' zero-value' : ''}" step="0.5" min="0" value="${row.hours.mon}" data-field="hours.mon" data-row="${row.id}"></td>
-                        <td><input type="number" class="hours-input${(parseFloat(row.hours.tue) || 0) === 0 ? ' zero-value' : ''}" step="0.5" min="0" value="${row.hours.tue}" data-field="hours.tue" data-row="${row.id}"></td>
-                        <td><input type="number" class="hours-input${(parseFloat(row.hours.wed) || 0) === 0 ? ' zero-value' : ''}" step="0.5" min="0" value="${row.hours.wed}" data-field="hours.wed" data-row="${row.id}"></td>
-                        <td><input type="number" class="hours-input${(parseFloat(row.hours.thu) || 0) === 0 ? ' zero-value' : ''}" step="0.5" min="0" value="${row.hours.thu}" data-field="hours.thu" data-row="${row.id}"></td>
-                        <td><input type="number" class="hours-input${(parseFloat(row.hours.fri) || 0) === 0 ? ' zero-value' : ''}" step="0.5" min="0" value="${row.hours.fri}" data-field="hours.fri" data-row="${row.id}"></td>
-                        <td><input type="number" class="hours-input${(parseFloat(row.hours.sat) || 0) === 0 ? ' zero-value' : ''}" step="0.5" min="0" value="${row.hours.sat}" data-field="hours.sat" data-row="${row.id}"></td>
-                        <td><input type="number" class="hours-input${(parseFloat(row.hours.sun) || 0) === 0 ? ' zero-value' : ''}" step="0.5" min="0" value="${row.hours.sun}" data-field="hours.sun" data-row="${row.id}"></td>
+                        <td>${this.renderHoursInput(row, 'mon')}</td>
+                        <td>${this.renderHoursInput(row, 'tue')}</td>
+                        <td>${this.renderHoursInput(row, 'wed')}</td>
+                        <td>${this.renderHoursInput(row, 'thu')}</td>
+                        <td>${this.renderHoursInput(row, 'fri')}</td>
+                        <td>${this.renderHoursInput(row, 'sat')}</td>
+                        <td>${this.renderHoursInput(row, 'sun')}</td>
                         <td class="row-total${(parseFloat(this.getRowTotal(row)) || 0) === 0 ? ' zero-value' : ''}">${this.getRowTotal(row)}</td>
                     `;
 
@@ -3667,6 +3771,19 @@
                 });
                 html += '</select>';
                 return html;
+            },
+
+            renderHoursInput(row, day) {
+                const value = row.hours[day];
+                const isZero = (parseFloat(value) || 0) === 0;
+                const zeroClass = isZero ? ' zero-value' : '';
+                return `<div class="hours-wrapper">
+                    <input type="number" class="hours-input${zeroClass}" step="0.5" min="0" value="${value}" data-field="hours.${day}" data-row="${row.id}">
+                    <div class="hours-spinners">
+                        <button type="button" class="hours-spinner spinner-up" data-row="${row.id}" data-field="hours.${day}" tabindex="-1">▲</button>
+                        <button type="button" class="hours-spinner spinner-down" data-row="${row.id}" data-field="hours.${day}" tabindex="-1">▼</button>
+                    </div>
+                </div>`;
             },
 
             getRowTotal(row) {
@@ -3800,6 +3917,13 @@
                 document.getElementById('timesheetBody').addEventListener('wheel', (e) => {
                     this.handleWheel(e);
                 }, { passive: false });
+
+                // Custom spinner buttons for hours
+                document.getElementById('timesheetBody').addEventListener('click', (e) => {
+                    if (e.target.matches('.hours-spinner')) {
+                        this.handleSpinnerClick(e.target);
+                    }
+                });
 
                 // Global keyboard shortcuts
                 document.addEventListener('keydown', (e) => {
@@ -3940,6 +4064,20 @@
                 const increment = this.data.preferences.timeIncrement || 0.5;
                 const currentValue = parseFloat(input.value) || 0;
                 const delta = e.deltaY < 0 ? increment : -increment;
+                const newValue = Math.min(12, Math.max(0, currentValue + delta));
+
+                input.value = newValue;
+                this.handleInputChange(input);
+            },
+
+            handleSpinnerClick(button) {
+                const wrapper = button.closest('.hours-wrapper');
+                const input = wrapper.querySelector('.hours-input');
+                if (!input) return;
+
+                const increment = this.data.preferences.timeIncrement || 0.5;
+                const currentValue = parseFloat(input.value) || 0;
+                const delta = button.classList.contains('spinner-up') ? increment : -increment;
                 const newValue = Math.min(12, Math.max(0, currentValue + delta));
 
                 input.value = newValue;
