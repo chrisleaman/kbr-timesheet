@@ -442,6 +442,23 @@
             background-color: #218838;  /* Darker green on hover */
         }
 
+        /* Copy project info button */
+        .copy-info-btn {
+            display: inline-block;
+            padding: 4px 8px;
+            background-color: #6b7fa3;  /* Muted slate-blue */
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 14px;
+            min-width: 28px;
+        }
+
+        .copy-info-btn:hover {
+            background-color: #5a6d8a;  /* Darker slate-blue on hover */
+        }
+
         .action-cell {
             display: flex;
             gap: 2px;
@@ -2297,11 +2314,11 @@
             <table id="timesheetTable">
                 <thead>
                     <tr>
-                        <th style="width: 100px;">Action</th>
-                        <th style="width: 210px;" class="sortable" onclick="app.sortColumn('project')" aria-sort="none">
+                        <th style="width: 125px;">Action</th>
+                        <th style="width: 200px;" class="sortable" onclick="app.sortColumn('project')" aria-sort="none">
                             Project <span id="sort-project" class="sort-indicator">▾</span>
                         </th>
-                        <th style="width: 200px;" class="sortable" onclick="app.sortColumn('projectTask')" aria-sort="none">
+                        <th style="width: 190px;" class="sortable" onclick="app.sortColumn('projectTask')" aria-sort="none">
                             Project Task <span id="sort-projectTask" class="sort-indicator">▾</span>
                         </th>
                         <th style="width: 120px;" class="sortable" onclick="app.sortColumn('cbs')" aria-sort="none">
@@ -2313,7 +2330,7 @@
                         <th style="width: 90px;" class="sortable" onclick="app.sortColumn('type')" aria-sort="none">
                             Type <span id="sort-type" class="sort-indicator">▾</span>
                         </th>
-                        <th style="width: 220px;" class="sortable" onclick="app.sortColumn('description')" aria-sort="none">
+                        <th style="width: 215px;" class="sortable" onclick="app.sortColumn('description')" aria-sort="none">
                             Description <span id="sort-description" class="sort-indicator">▾</span>
                         </th>
                         <th class="cat-col sortable" onclick="app.sortColumn('category')" aria-sort="none">
@@ -3280,7 +3297,8 @@
             shortcuts: {
                 addRow: "Ctrl+Enter",
                 deleteRow: "Ctrl+Delete",
-                duplicateRow: "Ctrl+D"
+                duplicateRow: "Ctrl+D",
+                copyProjectInfo: "Ctrl+Shift+C"
             },
 
             predefinedTemplates: [
@@ -3739,6 +3757,7 @@
                                            title="Copy to Current Week">➜</button>`
                                 : ''}
                             <button class="duplicate-btn" onclick="app.duplicateRow('${row.id}')" title="Duplicate row">⧉</button>
+                            <button class="copy-info-btn" onclick="app.copyProjectInfo('${row.id}')" title="Copy project info">📋</button>
                             <button class="delete-btn" onclick="app.deleteRow('${row.id}')" title="Delete row">✖</button>
                         </td>
                         <td><input type="text" value="${row.project}" data-field="project" data-row="${row.id}"></td>
@@ -4050,6 +4069,15 @@
                         if (rowId) this.duplicateRow(rowId);
                     }
                 }
+                // Ctrl+Shift+C: Copy project info to clipboard
+                else if (e.ctrlKey && e.shiftKey && e.key === 'C') {
+                    e.preventDefault();
+                    const input = document.activeElement;
+                    if (input.matches('input, select')) {
+                        const rowId = input.dataset.row;
+                        if (rowId) this.copyProjectInfo(rowId);
+                    }
+                }
             },
 
             handleWheel(e) {
@@ -4178,6 +4206,53 @@
                     this.render();
                     this.saveData();
                 }
+            },
+
+            copyProjectInfo(rowId) {
+                const currentWeek = this.data.weeks[this.currentWeekStart];
+                const row = currentWeek.rows.find(r => r.id === rowId);
+                if (!row) return;
+
+                const text = `Project: ${row.project || ''}\nProject task: ${row.projectTask || ''}`;
+
+                navigator.clipboard.writeText(text).then(() => {
+                    this.showToast('Copied to clipboard!', text);
+                }).catch(err => {
+                    console.error('Failed to copy:', err);
+                    // Fallback for older browsers
+                    const textarea = document.createElement('textarea');
+                    textarea.value = text;
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textarea);
+                    this.showToast('Copied to clipboard!', text);
+                });
+            },
+
+            showToast(title, message) {
+                // Remove any existing toast
+                const existingToast = document.querySelector('.copy-toast');
+                if (existingToast) existingToast.remove();
+
+                const toast = document.createElement('div');
+                toast.className = 'copy-toast';
+                toast.innerHTML = `
+                    <div>
+                        <strong>${this.escapeHtml(title)}</strong>
+                        <div style="font-size: 12px; opacity: 0.9; margin-top: 4px; white-space: pre-line;">${this.escapeHtml(message)}</div>
+                    </div>
+                    <button class="toast-dismiss-btn" onclick="this.parentElement.remove()">×</button>
+                `;
+                document.body.appendChild(toast);
+
+                // Auto-dismiss after 3 seconds
+                setTimeout(() => {
+                    if (toast.parentElement) {
+                        toast.classList.add('fade-out');
+                        setTimeout(() => toast.remove(), 300);
+                    }
+                }, 3000);
             },
 
             copyRowToCurrentWeek(rowId) {
