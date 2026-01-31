@@ -32,6 +32,7 @@
         }
 
         header {
+            position: relative;
             margin-bottom: 20px;
             border-bottom: 2px solid #0066cc;
             padding-bottom: 15px;
@@ -99,6 +100,20 @@
 
         .week-nav button:hover {
             background-color: #0052a3;
+        }
+
+        /* Prev/Next week buttons base styles */
+        .prev-week-btn,
+        .next-week-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0;
+        }
+
+        /* Button text/icon containers - visible by default */
+        .btn-text,
+        .btn-icon {
+            display: inline;
         }
 
         .week-display {
@@ -1822,6 +1837,231 @@
             white-space: normal;
             word-break: break-word;
         }
+
+        /* ==================== MEDIUM WIDTH BREAKPOINTS ==================== */
+
+        /* Medium-large screens: Two-row layout */
+        @media (max-width: 1400px) {
+            .controls {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            /* Hide dividers - groups will wrap naturally */
+            .button-group-divider {
+                display: none;
+            }
+
+            /* Button groups stay together, wrap as units */
+            .button-group {
+                display: flex;
+                flex-wrap: nowrap;
+                gap: 8px;
+            }
+
+            /* Row Actions group takes full width - forces others to next row */
+            .controls > .button-group:first-child {
+                flex-basis: 100%;
+            }
+        }
+
+        /* Medium screens: Button groups can wrap internally */
+        @media (max-width: 1100px) {
+            /* Allow buttons within groups to wrap */
+            .button-group {
+                flex-wrap: wrap;
+            }
+
+            /* Keep Row Actions and Export groups on own rows */
+            .controls > .button-group:first-child,
+            .controls > .button-group:nth-child(5) {
+                flex-basis: 100%;
+            }
+        }
+
+        /* ==================== MOBILE RESPONSIVE STYLES ==================== */
+
+        @media (max-width: 768px) {
+            /* Reduce body padding on mobile */
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                padding: 15px;
+            }
+
+            /* Header: Stack vertically, hide logo */
+            header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+
+            .header-logo {
+                display: none;
+            }
+
+            .header-content {
+                flex: none;
+                width: 100%;
+            }
+
+            h1 {
+                font-size: 20px;
+                margin-bottom: 8px;
+            }
+
+            .save-indicator {
+                position: absolute;
+                top: 15px;
+                right: 15px;
+                margin-left: 0;
+            }
+
+            /* Settings rows: tighter spacing */
+            .expected-hours-container,
+            .work-location-container,
+            .cost-type-container {
+                font-size: 13px;
+                margin-bottom: 4px;
+            }
+
+            /* Week Navigation: Compact mode */
+            .week-nav {
+                flex-wrap: wrap;
+                gap: 8px;
+                justify-content: center;
+            }
+
+            .week-nav button {
+                padding: 8px 12px;
+                font-size: 14px;
+            }
+
+            /* Hide button text on mobile, keep icons */
+            .week-nav .btn-text {
+                display: none;
+            }
+
+            .week-nav .btn-icon {
+                display: inline;
+            }
+
+            /* Prev/Next buttons - icon only */
+            .prev-week-btn,
+            .next-week-btn {
+                padding: 8px 14px;
+                min-width: 44px;
+            }
+
+            /* Week display takes available space */
+            .week-display-btn {
+                flex: 1;
+                min-width: 150px;
+                max-width: 280px;
+                font-size: 14px;
+            }
+
+            /* This Week button - icon only */
+            .this-week-btn {
+                padding: 7px 12px;
+                margin-left: 0;
+            }
+
+            /* Hide Empty button - compact */
+            #hideEmptyRowsBtn {
+                margin-left: 0;
+                padding: 7px 12px;
+            }
+
+            /* Clear sort button - compact */
+            .clear-sort-btn {
+                padding: 7px 12px;
+            }
+
+            /* Controls: Grid layout for buttons */
+            .controls {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
+                margin-bottom: 12px;
+            }
+
+            /* Hide dividers on mobile */
+            .button-group-divider {
+                display: none;
+            }
+
+            /* Button groups become inline contents */
+            .button-group {
+                display: contents;
+            }
+
+            /* All buttons in controls take full grid cell */
+            .controls .btn {
+                width: 100%;
+                padding: 12px 10px;
+                font-size: 13px;
+                text-align: center;
+            }
+
+            /* Dropdown container spans full width */
+            .controls .dropdown-container {
+                grid-column: 1 / -1;
+            }
+
+            .controls .dropdown-btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            /* Validation panel adjustments */
+            .validation-panel {
+                padding: 10px;
+                margin-top: 15px;
+                margin-bottom: 15px;
+            }
+
+            .validation-panel h3 {
+                font-size: 14px;
+            }
+        }
+
+        /* Extra small screens (phones in portrait) */
+        @media (max-width: 480px) {
+            body {
+                padding: 8px;
+            }
+
+            .container {
+                padding: 12px;
+                border-radius: 6px;
+            }
+
+            h1 {
+                font-size: 18px;
+            }
+
+            .week-nav {
+                gap: 6px;
+            }
+
+            .week-display-btn {
+                font-size: 13px;
+                min-width: 120px;
+            }
+
+            /* Single column for buttons on very small screens */
+            .controls {
+                grid-template-columns: 1fr;
+            }
+
+            .controls .btn {
+                padding: 14px 10px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1845,26 +2085,30 @@
                        aria-label="Edit cost type">(edit)</a>
                 </div>
                 <div class="week-nav">
-                    <button onclick="app.previousWeek()">← Previous Week</button>
+                    <button class="prev-week-btn" onclick="app.previousWeek()">
+                        <span class="btn-icon">←</span><span class="btn-text"> Previous Week</span>
+                    </button>
                     <button class="week-display-btn" onclick="app.openWeekPicker()"
                             aria-label="Choose week" id="weekDisplay">
                         Week of...
                     </button>
-                    <button onclick="app.nextWeek()">Next Week →</button>
+                    <button class="next-week-btn" onclick="app.nextWeek()">
+                        <span class="btn-text">Next Week </span><span class="btn-icon">→</span>
+                    </button>
                     <button class="this-week-btn" onclick="app.goToCurrentWeek()"
                             aria-label="Go to current week" title="Jump to this week">
-                        📍 This Week
+                        <span class="btn-icon">📍</span><span class="btn-text"> This Week</span>
                     </button>
-                    <button id="clearSortBtn" onclick="app.clearSort()"
+                    <button id="clearSortBtn" class="clear-sort-btn" onclick="app.clearSort()"
                             aria-label="Clear sort and restore original order"
                             title="Clear sort and restore original order"
                             style="display: none;">
-                        Clear Sort ✕
+                        <span class="btn-text">Clear Sort </span><span class="btn-icon">✕</span>
                     </button>
-                    <button id="hideEmptyRowsBtn" onclick="app.toggleHideEmptyRows()"
+                    <button id="hideEmptyRowsBtn" class="hide-empty-btn" onclick="app.toggleHideEmptyRows()"
                             aria-label="Hide rows with no hours"
                             title="Hide rows with no hours">
-                        Hide Empty Rows
+                        <span class="btn-icon">👁</span><span class="btn-text"> Hide Empty</span>
                     </button>
                     <input type="date" id="weekPicker" class="sr-only"
                            onchange="app.jumpToWeek(this.value)"
