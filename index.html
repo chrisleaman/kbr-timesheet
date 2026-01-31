@@ -754,6 +754,34 @@
             color: #666;
         }
 
+        /* Copy from Week toolbar */
+        .copy-week-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 15px 0;
+            padding: 10px 12px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+        }
+
+        .copy-week-toolbar .btn-sm {
+            padding: 6px 12px;
+            font-size: 13px;
+        }
+
+        .copy-week-count {
+            color: #6c757d;
+            font-size: 13px;
+            flex: 1;
+        }
+
+        .copy-week-include-hours {
+            font-size: 13px;
+            color: #495057;
+        }
+
         .hidden {
             display: none;
         }
@@ -2697,14 +2725,13 @@
                 <select id="weekSelector" class="modal-input" onchange="app.loadWeekRows()"></select>
 
                 <div id="weekRowsContainer" class="hidden">
-                    <div style="margin: 15px 0 0 0; padding: 0;">
-                        <label class="checkbox-label">
+                    <div class="copy-week-toolbar">
+                        <button class="btn btn-secondary btn-sm" onclick="app.toggleSelectAllWeekRows()" id="selectAllWeekRowsBtn">Deselect All</button>
+                        <span class="copy-week-count" id="copyWeekCount">0 selected</span>
+                        <label class="checkbox-label copy-week-include-hours">
                             <input type="checkbox" id="includeHours">
-                            <span>Include hours when copying</span>
+                            <span>Include hours</span>
                         </label>
-                    </div>
-                    <div style="margin: 0 0 15px 0; padding: 0;">
-                        <button class="btn btn-secondary" onclick="app.toggleSelectAllWeekRows()">Select All</button>
                     </div>
 
                     <div class="week-rows-list" id="weekRowsList"></div>
@@ -5686,6 +5713,9 @@
                 const allWeeks = Object.keys(this.data.weeks).sort().reverse();
                 const weeksWithData = allWeeks.filter(weekStart => this.hasWeekData(weekStart));
 
+                // Find the previous week (most recent week before current)
+                const previousWeek = weeksWithData.find(w => w < this.currentWeekStart);
+
                 weeksWithData.forEach(weekStart => {
                     const weekDates = this.getWeekDates(weekStart);
                     const startStr = this.formatDisplayDate(weekStart);
@@ -5702,6 +5732,12 @@
 
                     select.appendChild(option);
                 });
+
+                // Auto-select previous week if available
+                if (previousWeek) {
+                    select.value = previousWeek;
+                    this.loadWeekRows();
+                }
             },
 
             loadWeekRows() {
@@ -5718,6 +5754,7 @@
                 if (!week || !week.rows || week.rows.length === 0) {
                     list.innerHTML = '<p style="padding: 20px; text-align: center;">No rows in this week</p>';
                     container.classList.remove('hidden');
+                    this.updateWeekRowSelectionCount();
                     return;
                 }
 
@@ -5727,22 +5764,45 @@
                     const item = document.createElement('div');
                     item.className = 'week-row-item';
                     item.innerHTML = `
-                        <input type="checkbox" class="week-row-checkbox" data-row-index="${index}">
+                        <input type="checkbox" class="week-row-checkbox" data-row-index="${index}" checked>
                         <div class="week-row-details">
                             <strong>${row.project || '(No project)'} - ${row.description || '(No description)'}</strong>
                             <small>Task: ${row.projectTask || 'N/A'} | Total: ${total} hours</small>
                         </div>
                     `;
+                    // Add change listener to update count
+                    item.querySelector('.week-row-checkbox').addEventListener('change', () => this.updateWeekRowSelectionCount());
                     list.appendChild(item);
                 });
 
                 container.classList.remove('hidden');
+                this.updateWeekRowSelectionCount();
             },
 
             toggleSelectAllWeekRows() {
                 const checkboxes = document.querySelectorAll('.week-row-checkbox');
                 const allChecked = Array.from(checkboxes).every(cb => cb.checked);
                 checkboxes.forEach(cb => cb.checked = !allChecked);
+                this.updateWeekRowSelectionCount();
+            },
+
+            updateWeekRowSelectionCount() {
+                const checkboxes = document.querySelectorAll('.week-row-checkbox');
+                const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+                const totalCount = checkboxes.length;
+                const allChecked = checkedCount === totalCount && totalCount > 0;
+
+                // Update count display
+                const countEl = document.getElementById('copyWeekCount');
+                if (countEl) {
+                    countEl.textContent = `${checkedCount} of ${totalCount} selected`;
+                }
+
+                // Update button text
+                const btn = document.getElementById('selectAllWeekRowsBtn');
+                if (btn) {
+                    btn.textContent = allChecked ? 'Deselect All' : 'Select All';
+                }
             },
 
             copySelectedRows() {
